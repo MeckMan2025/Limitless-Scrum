@@ -1,0 +1,458 @@
+ACCESS CONTROL & USER APPROVAL FEATURE PLAN
+=============================================
+Everything That's Scrum - Robotics Team App
+Date: February 7, 2026
+
+
+=================================================================
+EXECUTIVE SUMMARY (read this, skip the rest if you want)
+=================================================================
+
+Right now anyone on the internet can create an account on our
+robotics team app. That's bad -- strangers and bots shouldn't
+have access to our team's task boards and chat.
+
+THE FIX: Before you can create an account, you have to enter
+your email. The app checks it against a whitelist of approved
+team emails. If you're on the list, you can sign up. If you're
+not, you see a message that says "talk to a team lead." That's
+it. Simple.
+
+Leads manage the whitelist from inside the app -- they can add
+or remove emails and assign roles (member, lead, mentor, coach).
+
+WHY IT MATTERS: Every real app protects who can get in. Google
+Classroom, Slack, Discord -- they all have some version of this.
+Building it teaches us how access control works across the
+database, the backend logic, and the user interface. It also
+keeps our teammates' data private, which is our responsibility
+as the people who built the app.
+
+The rest of this document is the detailed technical plan for
+how to build it. Read on if you're curious about the how.
+
+
+=================================================================
+PROBLEM STATEMENT
+=================================================================
+
+Right now, our app has a front door with no lock on it. Anyone in
+the entire world who finds the website can create an account and
+immediately walk right in. They can see our team's tasks, read our
+chat messages, and interact with our scrum boards. That's a problem
+because this app was built specifically for our robotics team --
+the students, mentors, and coaches who work together every day.
+
+Think of it like the robotics workshop. We don't leave the shop
+doors wide open for anyone to wander in and start using the tools.
+We know who belongs there -- the team members, the mentors who
+guide us, and the coaches who lead the program. Everyone else
+needs to check in first.
+
+The same should be true for our app. The people on our team should
+be able to sign up and get right to work. But if someone outside
+the team tries to create an account, they should have to wait for
+a team lead to say "yes, this person belongs here" before they
+can see anything.
+
+
+=================================================================
+WHY THIS FEATURE MATTERS
+=================================================================
+
+1. PRIVACY AND TRUST
+   Our team members share real work in this app -- task updates,
+   chat messages, project plans. That information is meant for the
+   team, not for strangers. When people know their workspace is
+   private, they feel safe to communicate openly and honestly.
+
+2. SECURITY
+   In software engineering, one of the most important principles
+   is "least privilege" -- only give access to the people who
+   actually need it. Every user account is a potential risk. If
+   someone with bad intentions creates an account, they could
+   spam the chat, mess up the task boards, or cause confusion.
+   Controlling who gets in is the first line of defense.
+
+3. REAL-WORLD SOFTWARE PRACTICE
+   Almost every professional app you use has access control.
+   Google Workspace lets admins control who joins an organization.
+   Slack lets workspace owners approve new members. GitHub lets
+   repo owners manage collaborators. Learning how access control
+   works -- whitelists, approval queues, roles, and permissions --
+   is a core skill in software development. This feature is a
+   chance to learn how real teams solve this problem.
+
+4. RESPONSIBILITY
+   When you build software that other people rely on, you have a
+   responsibility to protect their data. Our teammates trust that
+   when they log in and post a message or update a task, only
+   their team will see it. Shipping this feature is how we honor
+   that trust.
+
+5. THE ENGINEERING LESSON
+   Building this feature touches every layer of the app:
+   - The DATABASE (where we store who is approved and who isn't)
+   - The BACKEND LOGIC (checking permissions when someone signs up)
+   - The FRONTEND UI (showing different screens based on status)
+   - The ADMIN TOOLS (letting leads manage the team)
+
+   That's what real feature development looks like. It's not just
+   one file or one function -- it's understanding how all the
+   pieces connect and making them work together.
+
+
+=================================================================
+THE PROBLEM IN SIMPLE TERMS
+=================================================================
+
+   BEFORE (what we have now):
+
+     Someone finds our app -> Signs up -> Immediately inside
+     Bots find our app -> Spam signup form -> Flood the database
+
+   AFTER (what we're building):
+
+     Team member clicks "Create Account" -> Enters email ->
+       Email is on whitelist -> Create password -> Inside
+
+     Stranger clicks "Create Account" -> Enters email ->
+       Email NOT on whitelist -> "Sorry, talk to a team lead"
+       -> Dead end. No account created. No spam.
+
+
+=================================================================
+WHY WHITELIST-ONLY (NOT PUBLIC SIGNUP)
+=================================================================
+
+1. BOT PREVENTION
+   Bots can still find the signup page, but they can't get past
+   the email check. Unless a bot's email happens to be on our
+   whitelist (it won't be), the signup form never appears. No
+   password field, no display name field, no submit button.
+   The bot hits a wall at step one.
+
+2. ZERO WORK FOR LEADS (AFTER SETUP)
+   Leads add their team's emails to the whitelist once. After
+   that, teammates can sign up on their own whenever they're
+   ready. No approval queue to check. No pending requests to
+   review. The whitelist IS the approval -- it happened ahead
+   of time.
+
+   If a new person joins the team mid-season, a lead just adds
+   their email to the whitelist. Done.
+
+3. CLEANER DATABASE
+   No fake accounts. No pending accounts. No rejected accounts.
+   Every row in the database is a real team member.
+
+4. SIMPLE USER EXPERIENCE
+   The signup flow becomes two steps:
+     Step 1: "Enter your email" -> checks whitelist
+     Step 2: "Create your account" -> display name + password
+   That's it. Clean and fast for the people who belong.
+
+5. HOW IT WORKS IN THE REAL WORLD
+   School systems whitelist student emails before they can
+   access platforms. Company IT departments pre-approve
+   employee emails for internal tools. Sports teams use
+   roster lists to control access to team apps. This is the
+   same idea -- if you're on the roster, you're in.
+
+SOLUTION OVERVIEW
+-----------------
+Whitelist-only access control:
+  1. User visits the site and sees a sign-in form
+  2. New users click "Create Account"
+  3. First step: enter your email
+  4. App checks the email against the whitelist
+  5. If found -> proceed to create account (display name + password)
+  6. If not found -> "Sorry, your email is not on the whitelist.
+     Please talk to a team lead to be added."
+  7. Leads manage the whitelist from a User Management panel
+
+No invite codes. No approval queue. Just a simple gate:
+your email is either on the list or it isn't.
+
+WHO CAN MANAGE THE WHITELIST: Users with the "lead" role only.
+
+=================================================================
+DATABASE CHANGES
+=================================================================
+
+1. ADD STATUS FIELD TO PROFILES TABLE
+   ----------------------------------
+   ALTER TABLE profiles
+     ADD COLUMN status text DEFAULT 'pending'
+     CHECK (status IN ('approved', 'pending', 'rejected'));
+
+   - Existing users get set to 'approved':
+     UPDATE profiles SET status = 'approved' WHERE status IS NULL;
+
+2. CREATE APPROVED EMAILS TABLE
+   -----------------------------
+   CREATE TABLE approved_emails (
+     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+     email text UNIQUE NOT NULL,
+     role text DEFAULT 'member',
+     added_by uuid REFERENCES auth.users(id),
+     created_at timestamptz DEFAULT now()
+   );
+
+   This table holds pre-approved emails. When someone signs up
+   with a matching email, they are auto-approved with the
+   designated role (member, lead, mentor, coach, etc.).
+
+   Leads can manage this list from the app UI.
+
+3. ROW-LEVEL SECURITY
+   --------------------
+   - approved_emails: Only leads can insert/update/delete.
+     All authenticated users can read (for signup check).
+   - profiles: Users can read their own profile.
+     Leads can read all profiles (for the approval queue).
+
+=================================================================
+SIGNUP FLOW (UPDATED)
+=================================================================
+
+   Person visits the site
+              |
+              v
+   Existing user? -> Sign In (email + password) -> App
+              |
+              v
+   New user? -> Clicks "Create Account"
+              |
+              v
+   Step 1: "Enter your email to get started"
+              |
+              v
+   Check: Is email in approved_emails table?
+              |
+         /         \
+       YES           NO
+       /               \
+      v                 v
+   Step 2:          "Sorry, your email is not on
+   Show full        the whitelist. Please talk to
+   signup form:     a team lead to be added."
+   - Display name
+   - Password            [Back to Sign In]
+   - Confirm password
+      |
+      v
+   Supabase auth.signUp()
+      |
+      v
+   Create profile with
+   status = 'approved'
+   role = (from whitelist)
+      |
+      v
+   Full app access
+
+=================================================================
+SIGNUP SCREENS
+=================================================================
+
+When a new user clicks "Create Account", they see Step 1:
+
+   +-------------------------------------------+
+   |                                           |
+   |   Create Account                          |
+   |                                           |
+   |   Enter your email to get started:        |
+   |   [_____________________________]         |
+   |                                           |
+   |   [Check Email]                           |
+   |                                           |
+   |   Already have an account? Sign in        |
+   |                                           |
+   +-------------------------------------------+
+
+If the email IS on the whitelist, they see Step 2:
+
+   +-------------------------------------------+
+   |                                           |
+   |   Welcome! Create your account.           |
+   |                                           |
+   |   Email: kayden@school.edu (confirmed)    |
+   |                                           |
+   |   Display Name:                           |
+   |   [_____________________________]         |
+   |                                           |
+   |   Password:                               |
+   |   [_____________________________]         |
+   |                                           |
+   |   Confirm Password:                       |
+   |   [_____________________________]         |
+   |                                           |
+   |   [Create Account]                        |
+   |                                           |
+   +-------------------------------------------+
+
+If the email is NOT on the whitelist:
+
+   +-------------------------------------------+
+   |                                           |
+   |   Sorry, your email is not on the         |
+   |   whitelist.                              |
+   |                                           |
+   |   This app is for robotics team members,  |
+   |   mentors, and coaches only.              |
+   |                                           |
+   |   Please talk to a team lead to have      |
+   |   your email added.                       |
+   |                                           |
+   |   [Back to Sign In]                       |
+   |                                           |
+   +-------------------------------------------+
+
+=================================================================
+LEAD WHITELIST MANAGEMENT (NEW UI)
+=================================================================
+
+New tab/section in the app visible only to leads:
+"User Management"
+
+Two sub-sections:
+
+A. WHITELIST
+   ----------
+   Shows all whitelisted emails and lets leads manage them:
+
+   +-------------------------------------------+
+   | Whitelisted Emails (15)                   |
+   |                                           |
+   |  kayden@school.edu     lead    [Remove]   |
+   |  coach.mike@email.com  mentor  [Remove]   |
+   |  sarah@email.com       member  [Remove]   |
+   |  (not yet registered)                     |
+   |  tommy@email.com       member  [Remove]   |
+   |  (registered Feb 5)                       |
+   |                                           |
+   |  [Add Email] [Bulk Import]                |
+   +-------------------------------------------+
+
+   - Add Email: enter email + select role (member, lead,
+     mentor, coach)
+   - Bulk Import: paste a list of emails (one per line),
+     all default to 'member' role
+   - Remove: deletes from whitelist (does NOT delete the
+     account of someone who already signed up)
+   - Each email shows whether the person has registered yet
+
+B. REGISTERED MEMBERS
+   --------------------
+   Shows everyone who has signed up:
+
+   +-------------------------------------------+
+   | Team Members (12)                         |
+   |                                           |
+   |  Kayden        lead     [Change Role]     |
+   |  Coach Mike    mentor   [Change Role]     |
+   |  Sarah         member   [Change Role]     |
+   +-------------------------------------------+
+
+   - Leads can change a member's role after signup
+   - Leads can deactivate a member if needed
+
+=================================================================
+CODE CHANGES NEEDED
+=================================================================
+
+1. supabase_setup.sql
+   - Create approved_emails table
+   - Add RLS policies for approved_emails
+
+2. src/contexts/UserContext.jsx
+   - Add checkWhitelist(email) function that queries approved_emails
+   - Update signup() to pull role from whitelist match
+
+3. src/components/LoginScreen.jsx
+   - Change "Create Account" flow to a two-step process:
+     Step 1: Enter email -> check whitelist
+     Step 2: If approved, show display name + password fields
+     If not approved, show "not on whitelist" message
+   - Keep existing sign-in flow unchanged
+
+4. src/components/UserManagement.jsx (NEW)
+   - Whitelist management UI (leads only)
+   - Add/remove emails
+   - Assign role per email (member, lead, mentor, coach)
+   - Bulk import
+
+5. src/App.jsx
+   - Add "User Management" tab/button for leads
+   - Wire up UserManagement component
+
+=================================================================
+IMPLEMENTATION ORDER
+=================================================================
+
+Phase 1: Database setup
+   1. Create approved_emails table in Supabase
+   2. Add RLS policies (leads can manage, all can read)
+   3. Seed the table with known team emails and roles
+
+Phase 2: Lock the signup form
+   4. Update LoginScreen to two-step signup:
+      Step 1 -> enter email -> check whitelist
+      Step 2 -> if approved, show full signup form
+      If not approved -> show "not on whitelist" message
+   5. Update UserContext.signup() to pull role from whitelist
+
+Phase 3: Whitelist management UI
+   6. Create UserManagement component (leads only)
+   7. Add/remove emails with role assignment
+   8. Bulk import feature (paste list of emails)
+   9. Add "User Management" tab in App.jsx for leads
+
+Phase 4: Polish
+  10. Current members list (see who has signed up)
+  11. Visual indicator of which whitelisted emails have
+      registered vs. not yet
+  12. Ability for leads to remove/deactivate existing users
+
+=================================================================
+INITIAL WHITELIST SEED DATA
+=================================================================
+
+Leads should populate the approved_emails table with known
+team members before this goes live. Example:
+
+  INSERT INTO approved_emails (email, role) VALUES
+    ('kayden@...', 'lead'),
+    ('yukti@...', 'lead'),
+    ('nick@...', 'lead'),
+    ('harshita@...', 'lead'),
+    ('lily@...', 'lead'),
+    ('coach1@...', 'mentor'),
+    ('mentor1@...', 'mentor');
+    -- add all known team member emails here
+
+This ensures the entire existing team gets auto-approved
+when they sign up (or re-sign up) after the feature launches.
+
+=================================================================
+NOTES
+=================================================================
+
+- Users who are already signed up keep their accounts.
+  Nothing breaks for existing users.
+
+- The approved_emails table assigns roles at signup time.
+  This means a coach's email can be pre-set to role='mentor'
+  so they don't need manual role assignment after signup.
+
+- Removing an email from the whitelist does NOT delete or
+  lock out someone who already created an account. It only
+  prevents new signups with that email.
+
+- If a lead wants to revoke access for an existing user,
+  they can deactivate them from the Registered Members list.
+
+- The whitelist check happens BEFORE the password/name form
+  is shown. This means no Supabase auth account is created
+  for non-whitelisted emails. Zero junk in the database.

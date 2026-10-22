@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <title>EN Helper</title>
+
+    <link rel="icon" type="image/png" href="/helper/icon-192.png" />
+
+    <!-- iPhone "Add to Home Screen" reads these, not the manifest. -->
+    <link rel="apple-touch-icon" href="/helper/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="EN Helper" />
+
+    <link rel="manifest" href="/helper/manifest.json" />
+    <meta name="theme-color" content="#F4A3B5" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet" />
+    <script>
+      // Same guard as the main app: a deploy deletes the old bundle while
+      // Pages may still serve the old page for ten minutes. Reload once.
+      window.addEventListener('error', function (e) {
+        var el = e.target
+        if (!el || el.tagName !== 'SCRIPT' || !el.src) return
+        if (sessionStorage.getItem('en-helper-stale-shell')) return
+        sessionStorage.setItem('en-helper-stale-shell', '1')
+        location.reload()
+      }, true)
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          var root = document.getElementById('root')
+          if (root && root.children.length) sessionStorage.removeItem('en-helper-stale-shell')
+        }, 3000)
+      })
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/helper/main.jsx"></script>
+    <script>
+      // Pick up a new deploy the next time the Helper is opened. Matches the
+      // bundle's path only: this page's own text says "helper-" elsewhere,
+      // and matching that reloaded the page forever. Never reloads twice in a
+      // row either way.
+      fetch('/helper/?_t=' + Date.now(), { cache: 'no-store' })
+        .then(function (r) { return r.text() })
+        .then(function (html) {
+          var match = html.match(/\/assets\/helper-([A-Za-z0-9_-]+)\.js/)
+          var current = document.querySelector('script[src*="/assets/helper-"]')
+          if (!match || !current || current.src.indexOf(match[1]) !== -1) {
+            sessionStorage.removeItem('en-helper-refreshed')
+            return
+          }
+          if (sessionStorage.getItem('en-helper-refreshed')) return
+          sessionStorage.setItem('en-helper-refreshed', '1')
+          location.reload()
+        })
+        .catch(function () {})
+    </script>
+  </body>
+</html>

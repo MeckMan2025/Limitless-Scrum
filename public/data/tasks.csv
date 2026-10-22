@@ -1,0 +1,6 @@
+id,title,description,status,assignee,dueDate,skills,createdAt
+1,Design robot arm,Create CAD model for the grabber mechanism,todo,Alex,2024-02-15,CAD;Mechanical,2024-01-20
+2,Program autonomous mode,Write code for autonomous navigation,25,Jordan,2024-02-10,Programming;Python,2024-01-18
+3,Build chassis prototype,Assemble the main chassis frame,50,Sam,2024-02-08,Building;Mechanical,2024-01-15
+4,Test sensors,Calibrate and test all sensors,75,Taylor,2024-02-05,Electronics;Testing,2024-01-22
+5,Create team presentation,Prepare slides for competition judges,done,Casey,2024-02-01,Presentation;Design,2024-01-10

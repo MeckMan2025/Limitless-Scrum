@@ -1,0 +1,443 @@
+============================================================
+  AUTH PLAN - Everything That's Scrum
+  A learning guide for how we're adding real authentication
+============================================================
+
+Hey! This document explains what authentication (auth) is, why we need
+it, how it currently works in our app, and exactly what we're going to
+change. Read through it at your own pace. Once you understand what's
+happening, give the thumbs up and we'll build it together.
+
+
+============================================================
+PART 1: WHAT IS AUTHENTICATION?
+============================================================
+
+Authentication answers one question: "Who are you?"
+
+When you log into any website — Google, Instagram, GitHub — you prove
+who you are by entering credentials (usually email + password). The
+server checks those credentials, and if they match, it gives you a
+"session" — a temporary pass that says "this person is verified."
+
+There are two related but different concepts:
+
+  AUTHENTICATION (AuthN) = Proving who you are
+    Example: Logging in with email + password
+
+  AUTHORIZATION (AuthZ) = What you're allowed to do
+    Example: Only leads can create/delete tasks
+
+Our app needs both. Right now it has a very basic version of
+authorization (the LEADS array) but no real authentication at all.
+
+
+============================================================
+PART 2: HOW OUR APP WORKS RIGHT NOW (THE PROBLEM)
+============================================================
+
+Currently, here's what happens when someone "logs in":
+
+  1. User opens the app and sees the splash screen (LoadingScreen.jsx)
+  2. They tap to start, then type their name into a text box
+  3. We save that name to localStorage (browser storage on their device)
+  4. That's it. They're "logged in."
+
+The code that does this lives in two files:
+
+  src/contexts/UserContext.jsx (lines 24-30):
+  ┌─────────────────────────────────────────────────────┐
+  │  const login = (name) => {                          │
+  │    const trimmed = name.trim()                      │
+  │    if (!trimmed) return                             │
+  │    localStorage.setItem('scrum-username', trimmed)  │
+  │    localStorage.setItem('chat-username', trimmed)   │
+  │    setUsername(trimmed)                              │
+  │  }                                                  │
+  └─────────────────────────────────────────────────────┘
+
+  src/components/LoadingScreen.jsx (lines 28-50):
+  - Takes the name from the input box
+  - Checks if 2 people already use that name (duplicate check)
+  - Calls the login() function above
+  - Fades out the loading screen
+
+WHY THIS IS A PROBLEM:
+
+  - Anyone can type any name. I could type "kayden" and suddenly
+    I'm a lead with full admin powers.
+  - There's no password. No verification. No proof of identity.
+  - The "leads" list is hardcoded right in the source code:
+      const LEADS = ['kayden', 'harshita', 'yukti', 'nick', 'lily']
+    Anyone who reads the code knows exactly who to impersonate.
+  - localStorage is just browser storage — it's not secure at all.
+    You can open DevTools (F12) and change your name to anything.
+
+
+============================================================
+PART 3: WHAT WE'RE GOING TO USE — SUPABASE AUTH
+============================================================
+
+Our app already uses Supabase for the database (tasks, messages,
+boards). Supabase also has a built-in authentication system. Since
+we're already connected to Supabase, this is the simplest option —
+no new accounts, no new services, no new libraries to install.
+
+Here's what Supabase Auth gives us for free:
+
+  - Secure password hashing (passwords are never stored as plain text)
+  - Session management (login tokens that expire and refresh)
+  - Password reset via email
+  - An auth.users table managed entirely by Supabase
+  - JavaScript functions like:
+      supabase.auth.signUp()          -- register a new user
+      supabase.auth.signInWithPassword()  -- log in
+      supabase.auth.signOut()         -- log out
+      supabase.auth.getUser()         -- who is currently logged in?
+      supabase.auth.resetPasswordForEmail()  -- forgot password
+      supabase.auth.onAuthStateChange()  -- listen for login/logout
+
+
+============================================================
+PART 4: THE PLAN — WHAT WE'RE BUILDING
+============================================================
+
+Here's every step of what we'll do, explained so you know what's
+happening and why.
+
+
+--- STEP 1: Create a "profiles" table in Supabase ---
+
+Supabase Auth manages a hidden table called auth.users. We can't add
+custom columns to it (like display_name or role). So we create our
+own "profiles" table that links to it.
+
+  TABLE: profiles
+  ┌──────────────┬───────────┬──────────────────────────────────┐
+  │ Column       │ Type      │ Purpose                          │
+  ├──────────────┼───────────┼──────────────────────────────────┤
+  │ id           │ uuid      │ Matches the auth.users id        │
+  │ email        │ text      │ User's email address             │
+  │ display_name │ text      │ The name shown in the app        │
+  │ role         │ text      │ Either 'lead' or 'member'        │
+  │ created_at   │ timestamp │ When they registered             │
+  └──────────────┴───────────┴──────────────────────────────────┘
+
+  WHY: This replaces the hardcoded LEADS array. Instead of checking
+  if a name is in a list, we check if their profile has role='lead'.
+  This is data-driven — we can change roles from the database
+  without touching the code.
+
+  The "id" column is the key connection. When Supabase creates a user
+  in auth.users, it gives them a UUID (a unique ID like
+  "a1b2c3d4-e5f6-..."). Our profiles table uses that same ID so we
+  can always find the profile for any authenticated user.
+
+
+--- STEP 2: Auto-create a profile when someone registers ---
+
+When a new user signs up, we want their profile row to be created
+automatically. We do this with a Supabase "database trigger" — a
+small piece of code that runs inside the database whenever a certain
+event happens.
+
+  EVENT: A new row is inserted into auth.users (someone registers)
+  ACTION: Automatically insert a row into profiles with their info
+
+  This is a SQL function + trigger:
+  ┌─────────────────────────────────────────────────────────┐
+  │  When a new user signs up:                              │
+  │    1. Take their id and email from auth.users           │
+  │    2. Take display_name from the metadata they provided │
+  │    3. Set role = 'member' (default, safe starting role) │
+  │    4. Insert all of this into the profiles table        │
+  └─────────────────────────────────────────────────────────┘
+
+  WHY: We don't want to rely on the app to create the profile
+  (what if it crashes halfway?). The database trigger guarantees
+  it always happens.
+
+
+--- STEP 3: Enable Row Level Security (RLS) ---
+
+Right now, anyone with our Supabase URL and key can read/write
+everything in our database. RLS fixes this by adding rules:
+
+  Rule 1: Only logged-in users can read data
+  Rule 2: Users can only update their own profile
+  Rule 3: Only logged-in users can insert/update/delete tasks,
+           messages, and boards
+
+  HOW IT WORKS: Every request to Supabase includes the user's
+  auth token. Supabase checks the token, figures out who the user
+  is, and then checks the RLS rules before allowing the query.
+
+  Think of it like a bouncer at a club:
+    - No wristband (not logged in)? You can't get in at all.
+    - Got a wristband? You can enter, but you can only sit at
+      your own table (your own profile row).
+
+  WHY: This is the real security layer. Even if someone finds our
+  Supabase key (it's in the source code — that's fine, it's meant
+  to be public), they still can't do anything without logging in.
+
+
+--- STEP 4: Update UserContext.jsx ---
+
+This is the brain of our auth system in React. Here's what changes:
+
+  BEFORE (what it does now):
+    - Reads username from localStorage
+    - login() just saves a name to localStorage
+    - isLead checks if name is in the LEADS array
+    - logout() clears localStorage
+
+  AFTER (what it will do):
+    - On app load, calls supabase.auth.getUser() to check if
+      there's an active session
+    - Listens for auth changes with onAuthStateChange()
+    - login() calls supabase.auth.signInWithPassword()
+    - register() calls supabase.auth.signUp()
+    - logout() calls supabase.auth.signOut()
+    - Fetches the user's profile (display_name, role) from the
+      profiles table
+    - isLead checks if profile.role === 'lead'
+    - No more localStorage for auth (Supabase handles sessions)
+
+  The context will provide:
+    { user, profile, isLead, login, register, logout, resetPassword, loading }
+
+  "loading" is important — when the app first opens, we need a
+  moment to check if the user has an active session. We show a
+  loading state during that check so the app doesn't flash.
+
+
+--- STEP 5: Update LoadingScreen.jsx ---
+
+The splash screen will change from a simple name input to a proper
+login/register form.
+
+  BEFORE:
+    - One text input: "Your name"
+    - One button: "Join"
+
+  AFTER:
+    - Two modes the user can toggle between: "Login" and "Register"
+
+    LOGIN MODE:
+      - Email input
+      - Password input
+      - "Log In" button
+      - "Forgot password?" link
+      - "Don't have an account? Register" link
+
+    REGISTER MODE:
+      - Display name input (what they want to be called in the app)
+      - Email input
+      - Password input
+      - "Register" button
+      - "Already have an account? Log In" link
+
+  The tap-to-start splash and music will stay the same! We're just
+  replacing the form that appears after you tap.
+
+  The duplicate name check goes away — with real auth, each person
+  has their own account, so duplicates aren't possible.
+
+
+--- STEP 6: Update LoginScreen.jsx ---
+
+LoginScreen.jsx is the backup login component (used if someone
+somehow gets past the loading screen without being logged in).
+We'll update it with the same email/password form as the loading
+screen.
+
+
+--- STEP 7: Update the rest of the app ---
+
+Small changes throughout the app:
+
+  - Anywhere that reads "username" will read from profile.display_name
+  - The online presence system will use the authenticated user's
+    display_name instead of a localStorage value
+  - Chat messages will use display_name as the sender
+  - Task assignment will use display_name
+  - The lead-only features (create task, delete task, import CSV)
+    will check profile.role instead of the LEADS array
+
+  These changes are mostly just swapping where the name comes from.
+  The components themselves barely change.
+
+
+--- STEP 8: Password reset flow ---
+
+  When a user clicks "Forgot password?":
+    1. They enter their email
+    2. We call supabase.auth.resetPasswordForEmail(email)
+    3. Supabase sends them an email with a reset link
+    4. They click the link, which opens our app with a special token
+    5. We show a "Set new password" form
+    6. We call supabase.auth.updateUser({ password: newPassword })
+    7. Done — they're logged in with their new password
+
+  NOTE: Supabase's free tier limits emails to about 4 per hour.
+  For a team this size, that's fine. If it ever becomes an issue,
+  we can connect a custom email provider (like Gmail SMTP).
+
+
+============================================================
+PART 5: WHAT EACH FILE LOOKS LIKE BEFORE vs AFTER
+============================================================
+
+Here's a summary of every file we'll touch:
+
+  FILE                              WHAT CHANGES
+  ─────────────────────────────────────────────────────────
+  src/contexts/UserContext.jsx      Big rewrite — localStorage auth
+                                    replaced with Supabase Auth.
+                                    LEADS array removed.
+
+  src/components/LoadingScreen.jsx  Login form gets email + password
+                                    fields, register toggle, and
+                                    forgot password link.
+
+  src/components/LoginScreen.jsx    Same updates as LoadingScreen
+                                    (email + password form).
+
+  src/supabase.js                   No changes needed! We already
+                                    have the Supabase client set up.
+
+  src/App.jsx                       Minor — swap username references
+                                    to use profile.display_name,
+                                    swap isLead checks.
+
+  src/components/QuickChat.jsx      Minor — sender comes from
+                                    profile.display_name.
+
+  src/hooks/usePresence.js          Minor — presence tracks the
+                                    authenticated user's display_name.
+
+  src/components/Sidebar.jsx        Minor — display name update.
+
+  src/components/TaskCard.jsx       Minor — assignee comparison uses
+                                    profile.display_name.
+
+  src/components/TaskModal.jsx      Minor — if any lead checks exist.
+
+  Supabase Dashboard (SQL Editor)   Create profiles table, trigger,
+                                    and RLS policies.
+
+
+============================================================
+PART 6: THE ORDER WE'LL DO IT IN
+============================================================
+
+  1. Database first (Supabase Dashboard)
+     - Create the profiles table
+     - Create the auto-profile trigger
+     - Enable RLS and add security policies
+     (We do this first because the app code depends on the table
+     existing)
+
+  2. UserContext.jsx (the auth brain)
+     - Rewrite to use Supabase Auth
+     (We do this second because every other component depends on it)
+
+  3. LoadingScreen.jsx + LoginScreen.jsx (the login forms)
+     - Add email/password fields, register mode, forgot password
+     (These are the user-facing parts of auth)
+
+  4. All other components (small updates)
+     - Swap username references to profile.display_name
+     - Swap LEADS checks to profile.role checks
+     (Quick find-and-replace style changes)
+
+  5. Password reset page
+     - Handle the reset link redirect
+     - Show "new password" form
+
+  6. Test everything
+     - Register a new account
+     - Log out and log back in
+     - Test forgot password
+     - Verify leads still have admin powers
+     - Verify regular members can't do admin things
+     - Verify the chat, kanban board, and presence still work
+
+
+============================================================
+PART 7: KEY CONCEPTS GLOSSARY
+============================================================
+
+  UUID — "Universally Unique Identifier." A long random string like
+  "a1b2c3d4-e5f6-7890-abcd-ef1234567890". Used as IDs so there
+  are never collisions, even across different databases.
+
+  JWT — "JSON Web Token." When you log in, Supabase gives you a JWT.
+  It's an encoded string that contains your user ID and expiration
+  time. Your browser sends this with every request to prove who you
+  are. Think of it as a digital wristband.
+
+  Session — The period between logging in and logging out. Supabase
+  stores your JWT in the browser and automatically refreshes it
+  before it expires, so you stay logged in.
+
+  Hashing — Turning a password into a scrambled string that can't be
+  reversed. When you register, Supabase hashes your password before
+  storing it. When you log in, it hashes what you typed and compares
+  the two hashes. The actual password is never stored anywhere.
+
+  RLS (Row Level Security) — Database rules that control who can
+  read, insert, update, or delete each row. Enforced by the
+  database itself, so even if someone bypasses the app, the rules
+  still apply.
+
+  Trigger — A database function that runs automatically when
+  something happens (like a new row being inserted). We use one
+  to auto-create a profile when someone registers.
+
+  localStorage — Browser storage that persists across page refreshes.
+  We currently use it for auth (insecure). After this update,
+  Supabase manages session tokens in localStorage for us (secure,
+  because the tokens are cryptographically signed and expire).
+
+  Context (React) — A way to share data across all components without
+  passing props down through every level. Our UserContext makes the
+  logged-in user's info available everywhere in the app.
+
+  onAuthStateChange — A Supabase listener that fires whenever the
+  auth state changes (login, logout, token refresh, password reset).
+  We use it to keep our React state in sync with the actual auth
+  session.
+
+
+============================================================
+PART 8: SECURITY NOTES
+============================================================
+
+  - The Supabase "anon key" in supabase.js is meant to be public.
+    It's NOT a secret. It only allows access that RLS policies permit.
+
+  - The real security comes from RLS + authentication working
+    together. The anon key gets you to the door. The JWT (from
+    logging in) gets you through the door. RLS decides which rooms
+    you can enter.
+
+  - Passwords are hashed with bcrypt by Supabase. Even if someone
+    stole the entire database, they couldn't read the passwords.
+
+  - Session tokens (JWTs) expire after 1 hour by default. Supabase
+    automatically refreshes them using a longer-lived refresh token.
+    If someone steals a JWT, it only works for up to an hour.
+
+  - We'll set the minimum password length to 6 characters.
+    For a team app this is reasonable. For a bank, you'd want more.
+
+
+============================================================
+
+That's the full plan! Read through it, ask questions if anything is
+unclear, and when you're ready, give the go-ahead and we'll start
+building.
+
+============================================================

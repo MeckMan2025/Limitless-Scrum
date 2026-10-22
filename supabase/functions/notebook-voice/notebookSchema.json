@@ -1,0 +1,352 @@
+{
+  "categories": [
+    "Technical",
+    "Programming",
+    "Business"
+  ],
+  "whyOptions": [
+    "Directly advances the robot design",
+    "Improves autonomous performance",
+    "Supports outreach/business goals",
+    "Fixes a critical bug or issue",
+    "Prepares for upcoming competition",
+    "Improves team workflow/process",
+    "Research & learning",
+    "Other"
+  ],
+  "signals": [
+    {
+      "key": "learned",
+      "label": "I learned something new",
+      "helper": "You gained a new skill, concept, or understanding.",
+      "questions": [
+        {
+          "id": "what",
+          "type": "text",
+          "label": "What did you learn?"
+        },
+        {
+          "id": "confidence",
+          "type": "choice",
+          "label": "How confident are you now?",
+          "options": [
+            "Just introduced to it",
+            "I understand the basics",
+            "I can do it with some help",
+            "I can do it independently",
+            "I could teach someone else"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "help",
+      "label": "I got help",
+      "helper": "Someone helped you understand, solve, or continue your work.",
+      "questions": [
+        {
+          "id": "who",
+          "type": "choice",
+          "label": "Who helped you?",
+          "options": [
+            "Teammate",
+            "Team lead",
+            "Mentor",
+            "Coach",
+            "STEM professional / outside expert",
+            "Other"
+          ]
+        },
+        {
+          "id": "what",
+          "type": "text",
+          "label": "What did they help you with?"
+        },
+        {
+          "id": "result",
+          "type": "choice",
+          "label": "What changed because of their help?",
+          "options": [
+            "I understood something better",
+            "I was able to continue my task",
+            "We changed our design or approach",
+            "We solved a problem",
+            "I learned a new skill",
+            "Other"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "helped",
+      "label": "I helped someone else",
+      "helper": "You taught, explained, demonstrated, or helped someone get unstuck.",
+      "questions": [
+        {
+          "id": "who",
+          "type": "choice",
+          "label": "Who did you help?",
+          "options": [
+            "Teammate",
+            "Rookie/new member",
+            "Team lead",
+            "Another FTC team",
+            "Other"
+          ]
+        },
+        {
+          "id": "what",
+          "type": "text",
+          "label": "What did you help them with?"
+        },
+        {
+          "id": "how",
+          "type": "choice",
+          "label": "How did you help?",
+          "options": [
+            "Explained something",
+            "Demonstrated a skill",
+            "Worked through a problem with them",
+            "Reviewed their work",
+            "Helped them get unstuck",
+            "Other"
+          ]
+        },
+        {
+          "id": "independent",
+          "type": "choice",
+          "label": "Could they do it more independently afterward?",
+          "options": [
+            "Yes",
+            "Somewhat",
+            "Not yet"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "tested",
+      "label": "I tested something",
+      "helper": "You ran a trial, measured performance, compared options, or checked whether something worked.",
+      "questions": [
+        {
+          "id": "what",
+          "type": "text",
+          "label": "What did you test?"
+        },
+        {
+          "id": "how",
+          "type": "choice",
+          "label": "How did you test it?",
+          "options": [
+            "Repeated trials",
+            "Compared multiple options",
+            "Measured performance",
+            "Driver practice",
+            "Software test",
+            "Other"
+          ]
+        },
+        {
+          "id": "outcome",
+          "type": "choice",
+          "label": "What happened?",
+          "options": [
+            "It worked as expected",
+            "It partly worked",
+            "It failed",
+            "Results were inconsistent",
+            "We need more testing"
+          ]
+        },
+        {
+          "id": "changed",
+          "type": "choice",
+          "label": "Did the test change what you decided to do next?",
+          "options": [
+            "Yes",
+            "No",
+            "Not yet"
+          ]
+        },
+        {
+          "id": "changedWhat",
+          "type": "text",
+          "label": "What changed because of the test?",
+          "onlyWhen": "(a) => a.changed === 'Yes'"
+        }
+      ]
+    },
+    {
+      "key": "improved",
+      "label": "I improved or changed something",
+      "helper": "You changed your approach, design, code, or process based on what you learned.",
+      "questions": [
+        {
+          "id": "what",
+          "type": "text",
+          "label": "What did you change?"
+        },
+        {
+          "id": "why",
+          "type": "choice",
+          "label": "Why did you change it?",
+          "options": [
+            "Test results",
+            "Something failed",
+            "Mentor/teammate feedback",
+            "Driver feedback",
+            "Better idea discovered",
+            "Needed to simplify it",
+            "Other"
+          ]
+        },
+        {
+          "id": "better",
+          "type": "choice",
+          "label": "Did the change improve the result?",
+          "options": [
+            "Yes",
+            "Somewhat",
+            "Not yet",
+            "It made it worse, so we changed again"
+          ]
+        },
+        {
+          "id": "next",
+          "type": "text",
+          "label": "What will you try next?",
+          "onlyWhen": "(a) => !!a.better && a.better !== 'Yes'"
+        }
+      ]
+    },
+    {
+      "key": "initiative",
+      "label": "I took initiative",
+      "helper": "You noticed useful work that needed to happen and acted without waiting to be assigned.",
+      "questions": [
+        {
+          "id": "noticed",
+          "type": "text",
+          "label": "What did you notice needed to be done?"
+        },
+        {
+          "id": "did",
+          "type": "choice",
+          "label": "What did you do without being directly assigned?",
+          "options": [
+            "Started useful work",
+            "Solved a problem",
+            "Helped someone who needed it",
+            "Improved something",
+            "Organized something",
+            "Researched something",
+            "Other"
+          ]
+        },
+        {
+          "id": "result",
+          "type": "choice",
+          "label": "What was the result?",
+          "options": [
+            "It helped the team move forward",
+            "It prevented a problem",
+            "It improved something",
+            "It helped another person",
+            "It created a new idea/opportunity",
+            "Not sure yet"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "failed",
+      "label": "Something failed and I learned from it",
+      "helper": "Something didn’t work as expected, and you learned why or what to try next.",
+      "questions": [
+        {
+          "id": "what",
+          "type": "text",
+          "label": "What failed or didn’t work?"
+        },
+        {
+          "id": "cause",
+          "type": "choice",
+          "label": "What do you think caused it?",
+          "options": [
+            "Design issue",
+            "Programming issue",
+            "Build/assembly issue",
+            "Incorrect assumption",
+            "Human error",
+            "Not sure yet",
+            "Other"
+          ]
+        },
+        {
+          "id": "learned",
+          "type": "text",
+          "label": "What did you learn from it?"
+        },
+        {
+          "id": "next",
+          "type": "choice",
+          "label": "What will you do next?",
+          "options": [
+            "Try a different design",
+            "Change the code",
+            "Retest",
+            "Ask for help",
+            "Research more",
+            "Keep investigating",
+            "Other"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "collaborated",
+      "label": "I collaborated with someone",
+      "helper": "You worked with someone else to solve a problem, make a decision, or complete something together.",
+      "questions": [
+        {
+          "id": "who",
+          "type": "choice",
+          "label": "Who did you collaborate with?",
+          "options": [
+            "Someone in my group",
+            "Someone from another department",
+            "Team lead",
+            "Mentor/coach",
+            "Another FTC team",
+            "Other"
+          ]
+        },
+        {
+          "id": "what",
+          "type": "text",
+          "label": "What were you working on together?"
+        },
+        {
+          "id": "why",
+          "type": "choice",
+          "label": "Why was working together useful?",
+          "options": [
+            "We combined different skills",
+            "We made a better decision",
+            "We solved a problem faster",
+            "I learned something from them",
+            "They learned something from me",
+            "We connected work between different parts of the team",
+            "Other"
+          ]
+        },
+        {
+          "id": "outcome",
+          "type": "text",
+          "label": "What came out of the collaboration?"
+        }
+      ]
+    }
+  ]
+}

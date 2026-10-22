@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ETS Diagnostics</title>
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 16px; background: #fafafa; color: #333; }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    p.sub { margin: 0 0 12px; color: #888; font-size: 13px; }
+    .row { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+    .label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #999; }
+    .val { font-size: 14px; margin-top: 2px; word-break: break-word; white-space: pre-wrap; }
+    .ok { color: #16a34a; } .bad { color: #dc2626; } .warn { color: #d97706; }
+    button { font-size: 15px; padding: 10px 14px; border-radius: 10px; border: 1px solid #ddd; background: #fff; margin: 0 8px 8px 0; }
+    .primary { background: #FFE27A; border-color: #F5C400; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>ETS Diagnostics</h1>
+  <p class="sub">Watching the app load — give it 30 seconds, then screenshot.</p>
+
+  <button class="primary" onclick="openHome()">Open app on Home</button>
+  <button onclick="location.reload()">Run again</button>
+  <button onclick="hardReset()">Clear cache &amp; reload app</button>
+
+  <div id="out"></div>
+
+  <script>
+    // Plain-language health check for the deployed app. Exists so a blank
+    // screen can be diagnosed from a phone, without DevTools.
+    var out = document.getElementById('out')
+    var rows = {}
+    function row(label, value, cls) {
+      var d = rows[label]
+      if (!d) {
+        d = document.createElement('div')
+        d.className = 'row'
+        d.innerHTML = '<div class="label"></div><div class="val"></div>'
+        d.children[0].textContent = label
+        out.appendChild(d)
+        rows[label] = d
+      }
+      d.children[1].textContent = value
+      d.children[1].className = 'val ' + (cls || '')
+    }
+
+    row('Page loaded', new Date().toString(), '')
+
+    // Which screen the app will restore on open — a crashing screen shows up
+    // here as the last thing that worked.
+    try {
+      row('Signed in', /auth-token/.test(Object.keys(localStorage).join(',')) ? 'yes' : 'no', '')
+      row('Saved username', localStorage.getItem('scrum-username') || '(none)', '')
+      row('Last screen', localStorage.getItem('scrum-active-tab') || '(none)', '')
+    } catch (e) { row('Storage', 'unreadable: ' + String(e), 'bad') }
+
+    // Does the bundle the current index.html points at actually exist?
+    fetch('/?diag=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.text() })
+      .then(function (html) {
+        var m = html.match(/assets\/index-[A-Za-z0-9_-]+\.js/)
+        if (!m) { row('App bundle', 'not found in index.html', 'bad'); return }
+        row('App bundle (fresh)', m[0], '')
+        return fetch('/' + m[0], { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+          row('Bundle downloads', r.status === 200 ? 'yes (200)' : 'NO — ' + r.status, r.status === 200 ? 'ok' : 'bad')
+        })
+      })
+      .catch(function (e) { row('Bundle check failed', String(e), 'bad') })
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (regs) {
+        row('Service workers', regs.length ? regs.length + ' registered' : 'none', regs.length ? 'warn' : 'ok')
+      })
+    }
+
+    // Load the real app hidden and hook its errors as early as possible —
+    // waiting for onload misses anything thrown during the first render.
+    var errors = []
+    var frame = document.createElement('iframe')
+    frame.style.cssText = 'position:absolute;left:-9999px;width:390px;height:800px'
+    frame.src = '/?diag=1'
+    document.body.appendChild(frame)
+
+    var hook = setInterval(function () {
+      try {
+        var w = frame.contentWindow
+        if (!w || w.__diagHooked) return
+        w.__diagHooked = 1
+        w.onerror = function (msg, src, line, col, err) {
+          errors.push(String(msg) + ((err && err.stack) ? '\n' + err.stack.split('\n').slice(0, 3).join('\n') : ''))
+        }
+        w.addEventListener('unhandledrejection', function (e) {
+          errors.push('promise: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason)))
+        })
+        // React reports render crashes here before rethrowing.
+        var ce = w.console && w.console.error
+        if (ce) {
+          w.console.error = function () {
+            try { errors.push(Array.prototype.map.call(arguments, String).join(' ').slice(0, 400)) } catch (e) {}
+            return ce.apply(w.console, arguments)
+          }
+        }
+      } catch (e) { /* cross-origin during navigation */ }
+    }, 20)
+
+    // Report progress so a slow load isn't mistaken for a crash.
+    var ticks = 0
+    var watch = setInterval(function () {
+      ticks++
+      var rendered = '(unreadable)'
+      var words = ''
+      try {
+        var root = frame.contentDocument && frame.contentDocument.getElementById('root')
+        if (root) {
+          rendered = root.children.length ? 'yes — app rendered' : 'NO — root is empty (blank screen)'
+          words = (root.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 90)
+        } else rendered = 'no #root yet'
+      } catch (e) { rendered = 'blocked: ' + String(e) }
+
+      row('App renders (' + (ticks * 3) + 's)', rendered, /^yes/.test(rendered) ? 'ok' : 'bad')
+      if (words) row('On screen', words, '')
+      row('Errors seen', errors.length ? errors.slice(0, 3).join('\n---\n').slice(0, 900) : '(none yet)', errors.length ? 'bad' : 'ok')
+
+      if (ticks >= 10) { clearInterval(watch); clearInterval(hook); row('Watching', 'finished — screenshot this', '') }
+    }, 3000)
+
+    // Immediate way back in: the app reopens whatever screen you were last on,
+    // so if that screen is the broken one, point it at Home first.
+    function openHome() {
+      try { localStorage.setItem('scrum-active-tab', 'home') } catch (e) {}
+      location.replace('/?fresh=' + Date.now())
+    }
+
+    function hardReset() {
+      var done = function () { location.replace('/?fresh=' + Date.now()) }
+      try {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            Promise.all(regs.map(function (r) { return r.unregister() })).then(function () {
+              if (window.caches && caches.keys) {
+                caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k) })) }).then(done)
+              } else done()
+            })
+          })
+        } else done()
+      } catch (e) { done() }
+    }
+  </script>
+</body>
+</html>

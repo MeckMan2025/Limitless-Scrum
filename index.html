@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Limitless Scrum</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/ScrumLogo.png" />
+
+    <!-- iOS Home Screen Icon -->
+    <link rel="apple-touch-icon" href="/ScrumLogo.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Limitless" />
+
+    <!-- Web App Manifest for Android -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0B0F1A" />
+
+    <!-- Kalam handwriting font (used by the home-page notebook cards) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet" />
+    <script>
+      // A deploy replaces the hashed bundle and deletes the old one, but Pages
+      // serves index.html with max-age=600 — so for ten minutes a returning
+      // browser can ask for a script that is already gone and render nothing.
+      // Catch that 404 and reload once (a reload revalidates the document, so
+      // it picks up the new index.html). The flag stops any reload loop.
+      window.addEventListener('error', function (e) {
+        var el = e.target
+        if (!el || el.tagName !== 'SCRIPT' || !el.src) return
+        if (sessionStorage.getItem('ls-stale-shell')) return
+        sessionStorage.setItem('ls-stale-shell', '1')
+        location.reload()
+      }, true)
+      // Clear the flag once the app has actually mounted.
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          var root = document.getElementById('root')
+          if (root && root.children.length) sessionStorage.removeItem('ls-stale-shell')
+        }, 3000)
+      })
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Auto-refresh when a new deploy is detected
+      fetch('/?_t=' + Date.now(), { cache: 'no-store' })
+        .then(function(r) { return r.text() })
+        .then(function(html) {
+          var match = html.match(/index-([^.]+)\.js/)
+          if (match) {
+            var current = document.querySelector('script[src*="index-"]')
+            if (current && !current.src.includes(match[1])) {
+              location.reload()
+            }
+          }
+        })
+        .catch(function() {})
+    </script>
+  </body>
+</html>

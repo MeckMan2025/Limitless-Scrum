@@ -1,0 +1,8 @@
+{
+  "appId": "org.limitlessscrum.app",
+  "appName": "Limitless Scrum",
+  "webDir": "dist",
+  "server": {
+    "iosScheme": "https"
+  }
+}

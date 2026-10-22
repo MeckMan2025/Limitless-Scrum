@@ -1,0 +1,115 @@
+Bug Report: Whitelist & Members Disappearing After Hard Refresh
+================================================================
+Date Fixed: 2026-02-13
+Affected Component: src/components/UserManagement.jsx
+Supabase JS Version: 2.95.3
+
+THE SYMPTOM
+-----------
+When you log in, the User Management page shows all 24 whitelisted emails
+and 12 members correctly. But after pressing Cmd+Shift+R (hard refresh),
+both lists disappear and never come back.
+
+WHAT CMD+SHIFT+R DOES
+---------------------
+A normal refresh (Cmd+R) reloads the page using cached files. A hard
+refresh (Cmd+Shift+R) forces the browser to throw away all cached
+JavaScript/CSS and download everything fresh. This means the entire app
+starts from scratch -- all JavaScript objects are destroyed and recreated.
+
+ROOT CAUSE: SUPABASE CLIENT AUTH LOCK
+-------------------------------------
+When you log in, Supabase gives you two tokens:
+  - Access token: short-lived (expires every hour), used for every DB query
+  - Refresh token: long-lived, used to get a new access token when the old
+    one expires
+
+After a hard refresh, this sequence happens:
+
+  1. The Supabase JS client reinitializes from scratch
+  2. It finds your old session in localStorage (which survives hard refresh)
+  3. The access token in that session is expired
+  4. The client internally says "I need to refresh this token first"
+  5. It starts refreshing... but the refresh HANGS and never completes
+  6. Meanwhile, UserManagement tries to load whitelist and member data
+  7. Every supabase.from('table').select() call internally waits for the
+     token refresh to finish
+  8. The token refresh never finishes -> queries never fire -> data never loads
+
+This is a known behavior in supabase-js v2.95 -- the internal auth "lock"
+gets stuck after a hard refresh.
+
+WHY WE COULDN'T SEE THE PROBLEM (BUG #2)
+-----------------------------------------
+The original code had a debug variable that collected error messages but
+NEVER displayed them:
+
+    let msg = ''
+    // ... if error happens ...
+    msg += 'WL err: ' + r1.error.message  // stored in variable
+    // msg is never logged or shown to the user!
+
+So the queries were silently failing with no console output and no UI
+feedback. The user just saw empty lists with no explanation.
+
+THE FIX
+-------
+Since the database's Row Level Security (RLS) policies allow anyone to read
+the approved_emails and profiles tables (even without being logged in), we
+don't need the authenticated Supabase client for these reads.
+
+BEFORE (hangs after hard refresh):
+
+    const result = await supabase.from('approved_emails').select('id, email, role')
+    // This internally waits for the stuck auth token lock
+
+AFTER (works always):
+
+    const res = await fetch(`${supabaseUrl}/rest/v1/approved_emails?select=id,email,role`, {
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+      },
+    })
+    const data = await res.json()
+
+By using fetch() directly against the Supabase REST API with just the
+public anon key, we completely bypass the Supabase client's stuck auth
+system. The HTTP request goes out immediately, Supabase returns the data.
+
+Write operations (add email, remove email, toggle roles, etc.) still use
+the Supabase client since those need the authenticated user token and
+happen after the auth system has had time to settle.
+
+We also added:
+  - Console logging with [UserMgmt] prefix so errors show in dev tools
+  - Error banners in the UI with a Retry button
+  - Loading indicator so users know data is being fetched
+
+HOW WE DIAGNOSED IT
+--------------------
+1. Added console.log statements to trace where the code was getting stuck
+2. Used curl from the terminal to confirm the data was still in the database
+   (it was -- all 24 whitelist rows and 12 profiles were intact)
+3. Added 10-second timeouts around queries to confirm they were hanging
+   (both timed out, proving the queries never even fired)
+4. Identified the Supabase client's internal auth lock as the bottleneck
+5. Bypassed it with direct fetch() calls
+
+LESSONS LEARNED
+---------------
+1. Never swallow errors silently -- always console.error() or show in the UI
+2. Libraries can have internal bugs -- supabase-js auth lock hanging is not
+   your fault, but you need to work around it
+3. Use the simplest tool for the job -- if you just need to read public data,
+   a plain fetch() is more reliable than a complex SDK client
+4. Always check if the problem is in the data or in the code that reads it
+   (we verified with curl that the database was fine)
+5. Hard refresh (Cmd+Shift+R) can expose timing/initialization bugs that
+   normal refresh (Cmd+R) hides because cached JS keeps the old state
+
+COMMITS
+-------
+a09e299 - Fix query hang: bypass Supabase client auth lock with direct REST fetch
+a02e58e - Fix loadData hanging: remove blocking getSession, add 10s timeouts
+395c677 - Fix whitelist/members disappearing after hard refresh

@@ -1,0 +1,130 @@
+SUPABASE LESSONS LEARNED
+========================
+Project: Everything That's Scrum
+Date: February 7, 2026
+Tier: Free (NANO - 0.5 GB RAM, Shared CPU, gp3 Disk with IO Budget)
+
+INCIDENT
+--------
+Supabase alert: "Your project is currently exhausting multiple resources,
+and its performance is affected."
+
+Symptoms observed:
+  - Memory usage at 411 MB / 512 MB (~80%)
+  - CPU IOwait spikes (CPU stalling on disk operations)
+  - Database connections fluctuating 7-28
+  - Dashboard queries timing out ("Connection terminated due to connection timeout")
+  - Table Editor, Query Performance pages unable to load
+  - Disk IO Budget fully depleted
+
+ROOT CAUSE: CASCADING REALTIME QUERIES
+--------------------------------------
+The app creates 4-5 simultaneous realtime channels per connected user:
+
+  1. online-presence (usePresence hook in App.jsx)
+  2. online-presence DUPLICATE (LoadingScreen.jsx - same channel, second subscription)
+  3. boards-changes (postgres_changes on boards table)
+  4. tasks-changes (postgres_changes on tasks table)
+  5. messages-changes (postgres_changes on messages table via QuickChat.jsx)
+
+The critical problem: when ANY user edits a task, the realtime handler in
+EVERY connected client runs two full table scans:
+
+  SELECT * FROM tasks           -- entire tasks table, no filter
+  SELECT id FROM boards         -- entire boards table
+
+With N users connected, one task edit = 2N full table scan queries.
+With 4 users: 8 queries. With 25 users: 50 queries. Per edit.
+
+ISSUES FOUND (by severity)
+--------------------------
+
+CRITICAL:
+  - Realtime change handlers re-fetch entire tables instead of using the
+    event payload (which already contains the changed row data)
+  - SELECT * with no WHERE clause, no LIMIT, no column selection
+  - Every postgres_changes event triggers cascading full table scans
+  - Duplicate presence channel subscription (usePresence + LoadingScreen)
+
+HIGH:
+  - QuickChat marks messages as seen with individual UPDATE queries per
+    message via Promise.all() instead of a single batch update
+  - Initial page load runs 2 full table scans (all boards + all tasks)
+    multiplied by every user who opens the app
+  - No pagination on any queries - all data fetched at once
+
+MEDIUM:
+  - CSV task import can insert unbounded rows, then immediately re-queries
+  - Drag-and-drop fires an UPDATE per task moved with no debouncing
+  - No query caching or stale-data tolerance
+
+KEY LESSONS
+-----------
+
+1. REALTIME EVENTS INCLUDE THE DATA - USE IT
+   The postgres_changes payload contains the new/old row. Instead of
+   re-fetching the whole table on every change, update local state with
+   the payload directly:
+
+     .on('postgres_changes', { event: 'INSERT', ... }, (payload) => {
+       setTasks(prev => [...prev, payload.new])  // No extra query needed
+     })
+
+   This turns 2N queries per edit into 0 queries per edit.
+
+2. DISK IO IS A FINITE BUDGET ON FREE TIER
+   The NANO instance uses AWS gp3 storage with a limited IO credit pool.
+   Think of it like a prepaid data plan:
+     - Each read/write operation costs credits
+     - Full table scans cost the most credits
+     - When credits run out, everything gets throttled
+     - The database becomes effectively unusable until credits recover
+
+3. SELECT * IS EXPENSIVE
+   Always select only the columns you need:
+     BAD:  supabase.from('tasks').select('*')
+     GOOD: supabase.from('tasks').select('id, title, status, board_id')
+
+4. BATCH YOUR WRITES
+   Instead of N individual UPDATE queries:
+     BAD:  Promise.all(messages.map(m => supabase.from('messages').update(...).eq('id', m.id)))
+     GOOD: supabase.rpc('mark_messages_seen', { message_ids: ids, user: username })
+   Or at minimum, use a single UPDATE with .in():
+     supabase.from('messages').update({ seen_by: ... }).in('id', messageIds)
+
+5. DUPLICATE SUBSCRIPTIONS COST DOUBLE
+   Two components subscribing to the same channel = double the overhead.
+   Share subscription state via context/hooks, don't create parallel channels.
+
+6. PAGINATION MATTERS AT SCALE
+   Always use .limit() and .range() for queries that could grow:
+     supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(50)
+
+7. THE FREE TIER IS FOR DEVELOPMENT, NOT PRODUCTION LOAD
+   NANO specs: 0.5 GB RAM, shared CPU, limited IO
+   Fine for: 1-3 developers testing
+   Not designed for: 25 concurrent classroom users with realtime features
+
+8. DEBOUNCE RAPID-FIRE UPDATES
+   Drag-and-drop, typing, and other rapid interactions should be debounced
+   before hitting the database. A 300ms debounce can cut write volume
+   dramatically.
+
+OPTIMIZATION PRIORITIES (when ready to fix)
+-------------------------------------------
+1. Use realtime event payloads instead of re-fetching tables
+2. Remove duplicate presence subscription in LoadingScreen
+3. Batch message seen_by updates into a single query
+4. Add .limit() to message queries (e.g., last 50 messages)
+5. Select specific columns instead of SELECT *
+6. Debounce drag-and-drop and task edit updates
+7. Consider if all 3 postgres_changes channels are necessary
+   (could consolidate or use broadcast instead)
+
+FILES INVOLVED
+--------------
+src/App.jsx              - Lines 56-154: data loading & realtime listeners
+src/components/QuickChat.jsx  - Lines 31-82: message queries & listeners
+src/hooks/usePresence.js      - Lines 10-26: presence subscription
+src/components/LoadingScreen.jsx - Lines 17-28: duplicate presence
+src/supabase.js               - Client initialization (single instance, good)

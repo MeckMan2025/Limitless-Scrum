@@ -1,0 +1,16 @@
+{
+  "name": "EN Helper",
+  "short_name": "EN Helper",
+  "description": "Talk through today's meeting and it becomes your engineering notebook entry.",
+  "id": "/helper/",
+  "start_url": "/helper/",
+  "scope": "/helper/",
+  "display": "standalone",
+  "background_color": "#fff7f9",
+  "theme_color": "#F4A3B5",
+  "icons": [
+    { "src": "/helper/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/helper/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/helper/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
