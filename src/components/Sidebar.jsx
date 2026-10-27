@@ -4,6 +4,7 @@ import { ScrollText, Plus, FolderKanban, Trash2, Menu, X, ClipboardList, Chevron
 import { useUser } from '../contexts/UserContext'
 import { usePermissions } from '../hooks/usePermissions'
 import { useToast } from './ToastProvider'
+import { useFeatures } from '../lib/features'
 import { notifyRequestReviewers } from '../utils/requestRouting'
 
 // liveDay: the Competition Day that is live, or null. While one is live the
@@ -13,6 +14,9 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
   const { logout, username, user } = useUser()
   const { canManageOwnTeam, teamFullAccess, isGuest, canEditContent, canRequestContent, hasLeadTag, isCofounder, canViewSpecialControls, canViewOutreachTabs, canViewFinanceTabs, canViewCommsTabs, canViewHardwareTabs, canViewSoftwareTabs } = usePermissions()
   const { addToast } = useToast()
+  // Optional features switched off in Settings have no link here.
+  const feat = useFeatures()
+  const extraNav = ['home', 'data', 'attendance', 'calendar', 'scouting', 'logs', 'workshops', 'specialControls'].some(k => feat[k])
   const [newTabName, setNewTabName] = useState('')
   const [isAdding, setIsAdding] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -150,14 +154,14 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
                   {[
                     { icon: User, label: 'Profile', color: 'text-brand-blue-dark', tab: 'profile' },
                     { icon: Settings, label: 'Settings', color: 'text-brand-silver-dark', tab: 'settings' },
-                    ...(!isGuest && (!isTeamAccount || teamFullAccess) ? [{ icon: GitBranch, label: 'Org Chart', color: 'text-brand-blue-dark', tab: 'org-chart' }] : []),
+                    ...(feat.orgChart && !isGuest && (!isTeamAccount || teamFullAccess) ? [{ icon: GitBranch, label: 'Org Chart', color: 'text-brand-blue-dark', tab: 'org-chart' }] : []),
                     // A visiting team's controller gets it too, scoped to
                     // their own roster — that is what the account is for.
                     ...(!isGuest && ((!isTeamAccount || teamFullAccess) || canManageOwnTeam) ? [{ icon: Shield, label: 'User Management', color: 'text-brand-yellow-dark', tab: 'user-management' }] : []),
-                    { icon: Lightbulb, label: 'Suggestions', color: 'text-brand-silver-dark', tab: 'suggestions' },
+                    ...(feat.suggestions ? [{ icon: Lightbulb, label: 'Suggestions', color: 'text-brand-silver-dark', tab: 'suggestions' }] : []),
                     // Local-only, like RoleSpec and Team Pulse — half-built pages
                     // shouldn't be one tap away on the deployed site.
-                    ...(isCofounder && import.meta.env.DEV ? [{ icon: Construction, label: 'Unfinished Tabs', color: 'text-gray-400', tab: 'unfinished-tabs' }] : []),
+                    ...(feat.specialControls && isCofounder && import.meta.env.DEV ? [{ icon: Construction, label: 'Unfinished Tabs', color: 'text-gray-400', tab: 'unfinished-tabs' }] : []),
                     { icon: LogOut, label: 'Logout', color: 'text-red-400' },
                   ].map(({ icon: Icon, label, color, tab, action }) => (
                     <button
@@ -325,7 +329,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
               together read as a double line above Home. */}
           {/* Role / Gen / All — filters which nav sections show below.
               Local-only while the role experiences are unfinished. */}
-          {import.meta.env.DEV && (!isTeamAccount || teamFullAccess) && (
+          {import.meta.env.DEV && extraNav && (!isTeamAccount || teamFullAccess) && (
             <div className="flex gap-1 mb-2 bg-gray-100 rounded-xl p-1">
               {[
                 { id: 'role', label: 'Role', Icon: UserCog },
@@ -345,9 +349,10 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
               ))}
             </div>
           )}
-          {import.meta.env.DEV && (!isTeamAccount || teamFullAccess) && <hr className="mb-1.5 border-gray-200" />}
+          {import.meta.env.DEV && extraNav && (!isTeamAccount || teamFullAccess) && <hr className="mb-1.5 border-gray-200" />}
 
           {/* Home Tab */}
+          {feat.home && (
           <div
             className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
               activeTab === 'home'
@@ -362,11 +367,12 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
             <Home size={16} className="text-brand-yellow-dark" />
             <span className="truncate">Home</span>
           </div>
+          )}
 
           {navMode !== 'role' && (<>
           {/* Chat has no nav tab. */}
 
-          <hr className="my-2 border-gray-200" />
+          {feat.home && <hr className="my-2 border-gray-200" />}
 
           {/* Scouting Tab for team accounts — form only, no dropdown */}
 
@@ -374,7 +380,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
               (team accounts) and Comp Day still reach the form above. */}
           {/* Data Tab for team accounts — dropdown with scouting data only */}
 
-          {(!isTeamAccount || teamFullAccess) && <>
+          {(!isTeamAccount || teamFullAccess) && (feat.data || feat.attendance) && <>
           <div
             className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
               activeTab === 'data' || activeTab === 'attendance' || activeTab === 'team-growth' || activeTab === 'role-spec'
@@ -402,6 +408,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
 
           {!isGuest && (dataOpen || activeTab === 'data' || activeTab === 'attendance' || activeTab === 'team-growth' || activeTab === 'role-spec') && (
             <div className="ml-4 mt-1 space-y-1">
+              {feat.data && (
               <div
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-colors text-sm ${
                   activeTab === 'data' ? 'bg-brand-blue/40 text-gray-800' : 'hover:bg-brand-blue/20 text-gray-500'
@@ -414,6 +421,8 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
                 <ChevronRight size={14} className={activeTab === 'data' ? 'rotate-90' : ''} />
                 <span className="truncate">RadRank</span>
               </div>
+              )}
+              {feat.attendance && (
               <div
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-colors text-sm ${
                   activeTab === 'attendance' ? 'bg-brand-blue/40 text-gray-800' : 'hover:bg-brand-blue/20 text-gray-500'
@@ -426,6 +435,8 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
                 <ChevronRight size={14} className={activeTab === 'attendance' ? 'rotate-90' : ''} />
                 <span className="truncate">Attendance</span>
               </div>
+              )}
+              {feat.data && (
               <div
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-colors text-sm ${
                   activeTab === 'team-growth' ? 'bg-brand-blue/40 text-gray-800' : 'hover:bg-brand-blue/20 text-gray-500'
@@ -435,9 +446,10 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
                 <ChevronRight size={14} className={activeTab === 'team-growth' ? 'rotate-90' : ''} />
                 <span className="truncate">Team Growth</span>
               </div>
+              )}
               {/* RoleSpec is local-only for now — import.meta.env.DEV is false
                   in a production build, so it isn't on the deployed site. */}
-              {import.meta.env.DEV && (
+              {import.meta.env.DEV && feat.data && (
                 <div
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-colors text-sm ${
                     activeTab === 'role-spec' ? 'bg-brand-blue/40 text-gray-800' : 'hover:bg-brand-blue/20 text-gray-500'
@@ -454,11 +466,11 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
           </>}
 
           {/* Only show separator if non-team Data section was rendered (team Data has its own hr) */}
-          {(!isTeamAccount || teamFullAccess) && <hr className="my-2 border-gray-200" />}
+          {(!isTeamAccount || teamFullAccess) && (feat.data || feat.attendance) && <hr className="my-2 border-gray-200" />}
 
           {/* Just the Calendar now — a section that holds one page is a
               folder with one file in it. Open to visiting teams too. */}
-          {(
+          {feat.calendar && (
             <>
               <div
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
@@ -479,7 +491,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
           {/* Scouting. Its only link used to be inside the Competition Day
               block, which meant it did not exist on an ordinary day — and a
               form nobody can reach does not get filled in. */}
-          {!isGuest && (!isTeamAccount || teamFullAccess) && (
+          {feat.scouting && !isGuest && (!isTeamAccount || teamFullAccess) && (
             <>
               <div
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
@@ -502,7 +514,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
               Logs is ours — a visiting team has no outreach, expenses or
               mentor log here, and the access rule already refuses it, so the
               link was one that could only ever bounce. */}
-          {!isGuest && (!isTeamAccount || teamFullAccess) && (
+          {feat.logs && !isGuest && (!isTeamAccount || teamFullAccess) && (
             <>
               {/* Logs holds three, so it opens rather than being one page —
                   the same as Data. Open it by the arrow; it also opens itself
@@ -650,10 +662,10 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
 
           {(!isTeamAccount || teamFullAccess) && <>
           {navMode !== 'role' && (<>
-          <hr className="my-2 border-gray-200" />
+          {feat.workshops && <hr className="my-2 border-gray-200" />}
 
           {/* Workshops — flat nav item; the Tasks dropdown (Scrum + Workshops) is gone. */}
-          {!isGuest && (
+          {feat.workshops && !isGuest && (
             <div
               className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
                 activeTab === 'workshops'
@@ -681,7 +693,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
           {/* Requests is not a nav item — it's the row under the notification
               bell, so there's one way in for everyone. */}
 
-          {canViewSpecialControls && (
+          {canViewSpecialControls && feat.specialControls && (
             <>
               <hr className="my-2 border-gray-200" />
 
@@ -715,7 +727,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
         </nav>
 
         {/* Online Now */}
-        {onlineUsers && onlineUsers.length > 0 && (
+        {feat.onlineNow && onlineUsers && onlineUsers.length > 0 && (
           <div className="px-4 py-3 border-t">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Online Now</h3>
             <div className="space-y-1.5">
@@ -730,7 +742,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
         )}
 
         {/* Music control */}
-        {musicStarted && (
+        {feat.music && musicStarted && (
           <div className="p-4 border-t">
             <button
               onClick={onToggleMusic}

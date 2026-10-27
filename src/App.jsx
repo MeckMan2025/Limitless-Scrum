@@ -74,6 +74,7 @@ import LogsView from './components/LogsView'
 import AbsenceNotice from './components/AbsenceNotice'
 import AIManual from './components/AIManual'
 import ExpenseRequests from './components/ExpenseRequests'
+import { useFeatures, getFeatures, tabOn } from './lib/features'
 import NotificationBell from './components/NotificationBell'
 import { useToast } from './components/ToastProvider'
 import { useNativePush } from './hooks/useNativePush'
@@ -382,7 +383,11 @@ function App() {
   const SCOPE = teamScope(myTeamNumber)
   // The Competition Day that is live, if any. When one starts, everyone is
   // taken to its scouting screen (the Schedule tab shows it while it is live).
-  const liveDay = useLiveCompDay(SCOPE)
+  // Optional features, switched on and off in Settings. Only the Scrum boards
+  // are always there; a live Competition Day needs Scouting switched on.
+  const features = useFeatures()
+  const liveDayRaw = useLiveCompDay(SCOPE)
+  const liveDay = features.scouting ? liveDayRaw : null
   const liveDayId = liveDay?.id || null
   useEffect(() => {
     if (liveDayId && username) setActiveTab('home')
@@ -438,7 +443,7 @@ function App() {
   useNativePush() // iOS Capacitor only — registers for APNs and saves token
   const { onlineUsers, presenceState } = usePresenceContext()
   useBackButton()
-  const [isLoading, setIsLoading] = useState(() => !effectiveIsTeam)
+  const [isLoading, setIsLoading] = useState(() => !effectiveIsTeam && getFeatures().intro)
   const [radicalMsg] = useState(() => {
     const msgs = ['Going limitless...', 'Revving the robots...', 'Charging up the SCRUM...', 'Limitless Scrum incoming...', 'Deploying limitless vibes...', 'Scrumming it up...', 'Activating turbo mode...', 'Warming up the gears...']
     return msgs[Math.floor(Math.random() * msgs.length)]
@@ -464,6 +469,12 @@ function App() {
     }
     return saved || 'home'
   })
+
+  // A page whose feature is switched off can't be opened: a saved tab, a
+  // notification or a link to it lands on Home, or the Main board without Home.
+  useEffect(() => {
+    if (!tabOn(features, activeTab)) setActiveTab(features.home ? 'home' : 'main')
+  }, [activeTab, features]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // A visiting team opens on their own dashboard, not on a board. Anything
   // they can no longer reach sends them there too, which covers a tab saved
@@ -562,7 +573,7 @@ function App() {
 
   // Comp Day screen captivation — check if there's a live session with an active block and user has a role
   useEffect(() => {
-    if (!username || hasLeadTag || effectiveIsTeam) { setCompDayLock(null); return }
+    if (!username || hasLeadTag || effectiveIsTeam || !features.scouting) { setCompDayLock(null); return }
     let cancelled = false
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
     const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -607,7 +618,7 @@ function App() {
       .subscribe()
 
     return () => { cancelled = true; clearInterval(interval); document.removeEventListener('visibilitychange', check); supabase.removeChannel(channel) }
-  }, [username, hasLeadTag, effectiveIsTeam])
+  }, [username, hasLeadTag, effectiveIsTeam, features.scouting])
 
   // Force tab when comp day lock is active
   useEffect(() => {
@@ -1687,7 +1698,7 @@ function App() {
         </div>
       )}
       {/* Guests and kiosk accounts aren't people we send notifications to. */}
-      {!isLoading && !effectiveIsTeam && (<><ChangelogPopup /><MeetingRecapPopup /><BirthdayConfetti />{!isGuest && <NotificationNudge />}</>)}
+      {features.popups && !isLoading && !effectiveIsTeam && (<><ChangelogPopup /><MeetingRecapPopup /><BirthdayConfetti />{!isGuest && features.notifications && <NotificationNudge />}</>)}
       {viewTask && (
         <TaskDetailModal
           task={viewTask}
@@ -1696,10 +1707,10 @@ function App() {
           onMove={canDragTask(viewTask) ? (st) => moveTask(viewTask.id, st) : null}
         />
       )}
-      {import.meta.env.DEV && showPulse && user?.id && <DailyPulsePopup userId={user.id} onClose={() => setShowPulse(false)} onComplete={() => setShowPulse(false)} />}
+      {features.popups && import.meta.env.DEV && showPulse && user?.id && <DailyPulsePopup userId={user.id} onClose={() => setShowPulse(false)} onComplete={() => setShowPulse(false)} />}
       {/* Being picked to rate a decision matrix takes over the screen until
           it's done — same reason it gets a notification. */}
-      {!isLoading && !effectiveIsTeam && !isGuest && <MatrixRatingRequired />}
+      {features.popups && !isLoading && !effectiveIsTeam && !isGuest && <MatrixRatingRequired />}
     <div className={`min-h-screen bg-gradient-to-br from-[#0B0F1A] via-[#101B3A] to-[#0B0F1A] flex flex-col relative ${isLoading && !effectiveIsTeam ? 'hidden' : ''}`}>
       {loadError && (
         <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 text-sm text-center flex items-center justify-center gap-3">

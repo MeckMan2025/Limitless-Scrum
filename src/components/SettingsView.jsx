@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { restHeaders } from '../lib/restHeaders'
-import { Settings, Bell, Music, Volume2, Lock, Sparkles, RefreshCw } from 'lucide-react'
+import { Settings, Bell, Music, Volume2, Lock, Sparkles, RefreshCw, LayoutGrid } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useUser } from '../contexts/UserContext'
 import { usePushNotifications } from '../hooks/usePushNotifications'
 import PasswordInput from './PasswordInput'
 import { ChangelogModal } from './ChangelogPopup'
 import ScoutingSync from './ScoutingSync'
+import { FEATURES, useFeatures, setFeature } from '../lib/features'
 
 const MUSIC_OPTIONS = [
   { id: 'random', label: 'Random', description: 'Pick a random song each time' },
@@ -18,6 +19,7 @@ const MUSIC_OPTIONS = [
 
 export default function SettingsView() {
   const { user } = useUser()
+  const features = useFeatures()
   const { isSupported: pushSupported, isSubscribed: pushSubscribed, permission: pushPermission, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications()
   const [showChangelog, setShowChangelog] = useState(false)
   const [notifPrefs, setNotifPrefs] = useState({ enabled: true, calendar: true, chat: true })
@@ -73,6 +75,40 @@ export default function SettingsView() {
         <Settings size={22} className="text-brand-silver-dark" />
         Settings
       </h2>
+
+      {/* ─── Features ─── */}
+      {/* The Scrum boards are the app; everything else is switched on here. */}
+      <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <h3 className="font-semibold text-gray-700 mb-1 flex items-center gap-2">
+          <LayoutGrid size={16} className="text-brand-blue-dark" />
+          Features
+        </h3>
+        <p className="text-xs text-gray-400 mb-3">Switch on the parts of the app you want. Anything off disappears from the menu.</p>
+        <div className="divide-y divide-gray-100">
+          {FEATURES.map(f => (
+            <div key={f.key} className="flex items-center justify-between gap-4 py-2.5">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-700">{f.label}</p>
+                <p className="text-xs text-gray-400">{f.desc}</p>
+              </div>
+              <button
+                role="switch"
+                aria-checked={!!features[f.key]}
+                aria-label={f.label}
+                disabled={f.locked}
+                onClick={() => setFeature(f.key, !features[f.key])}
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-60 ${
+                  features[f.key] ? 'bg-brand-blue-dark' : 'bg-gray-300'
+                }`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  features[f.key] ? 'translate-x-6' : 'translate-x-1'
+                }`} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* ─── Push Notifications ─── */}
       <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">

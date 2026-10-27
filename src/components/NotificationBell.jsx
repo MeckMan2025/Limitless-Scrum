@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useFeatures } from '../lib/features'
 import { restHeaders, ensureUserToken } from '../lib/restHeaders'
 import { createPortal } from 'react-dom'
 import { Bell, Inbox, Megaphone, HelpCircle, CheckCheck, Trash2 } from 'lucide-react'
@@ -26,6 +27,9 @@ function requestNotifPermission() {
 }
 
 export default function NotificationBell() {
+  // Switched off in Settings: no bell at all (the hooks below still run, so
+  // the hook order stays the same either way).
+  const feat = useFeatures()
   const { user } = useUser()
   const { pendingCount, panel: requestsPanel } = useRequestsPanel()
   const { freshCount, panel: announcementsPanel } = useAnnouncementsPanel()
@@ -176,6 +180,7 @@ export default function NotificationBell() {
     return d.toLocaleDateString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
   }
 
+  if (!feat.notifications) return null
   return (
     <div className="relative" ref={ref}>
       <NotificationPopup notification={popup} onClose={() => setPopup(null)} />
