@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "demo": "vite --mode demo --port 5299 --strictPort",
     "prebuild": "node scripts/sync-notebook-schema.mjs --check",
     "build": "vite build",
     "preview": "vite preview",

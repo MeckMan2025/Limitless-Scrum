@@ -3,6 +3,8 @@ import { restHeaders, startSessionKeeper } from '../lib/restHeaders'
 import { supabase, arrivedFromRecoveryLink } from '../supabase'
 import { HOME_TEAM_NUMBER } from '../data/team'
 
+const DEMO = import.meta.env.VITE_DEMO === 'true'
+
 const UserContext = createContext(null)
 const SESSION_MAX_AGE = 30 * 24 * 60 * 60 * 1000 // 30 days
 
@@ -375,6 +377,22 @@ export function UserProvider({ children }) {
 
   // Restore session on mount
   useEffect(() => {
+    // Demo mode (npm run demo): no sign-in. A made-up co-founder is signed in
+    // so every tab shows, and the app talks to an empty fake database on the
+    // dev server instead of the real one (see vite.config.js).
+    if (DEMO) {
+      const demoUser = { id: '00000000-0000-4000-8000-000000000001', email: 'demo@limitless.local' }
+      localStorage.setItem('scrum-cached-user-id', demoUser.id)
+      localStorage.setItem('scrum-user-email', demoUser.email)
+      setUser(demoUser)
+      applyProfile({
+        id: demoUser.id, display_name: 'Kayden (demo)', role: 'member',
+        function_tags: ['Co-Founder'], authority_tier: 'teammate', is_authority_admin: true,
+        team_number: HOME_TEAM_NUMBER, short_bio: '',
+      }, demoUser.email)
+      setLoading(false)
+      return
+    }
     let mounted = true
 
     async function init() {
@@ -825,7 +843,7 @@ export function UserProvider({ children }) {
   // Keep the sign-in alive while someone is signed in (lib/restHeaders.js).
   // A new sign-in clears any earlier "sign in again".
   useEffect(() => {
-    if (!user?.id) return
+    if (!user?.id || DEMO) return
     setSessionLost(false)
     return startSessionKeeper()
   }, [user?.id])
