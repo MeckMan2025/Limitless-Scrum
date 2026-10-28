@@ -50,7 +50,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
   const handleAddTab = (e) => {
     e.preventDefault()
     if (!newTabName.trim()) return
-    if (localStorage.getItem('scrum-sfx-enabled') !== 'false') new Audio('/sounds/click.mp3').play().catch(() => {})
+    if (localStorage.getItem('scrum-sfx-enabled') !== 'false') new Audio(`${import.meta.env.BASE_URL}sounds/click.mp3`).play().catch(() => {})
     onAddTab(newTabName.trim())
     setNewTabName('')
     setIsAdding(false)

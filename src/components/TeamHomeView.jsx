@@ -113,7 +113,7 @@ function TeamHomeView({ onTabChange }) {
 
   slides.push(
     <div className="flex flex-col items-center justify-center text-center py-6">
-      <img src="/ScrumLogo-transparent.png" alt="Scrum Logo" className="w-16 h-16 mb-3 drop-shadow-lg" />
+      <img src={`${import.meta.env.BASE_URL}ScrumLogo-transparent.png`} alt="Scrum Logo" className="w-16 h-16 mb-3 drop-shadow-lg" />
       <h2 className="text-xl font-bold text-gray-800 mb-2">
         Welcome{teamNumber ? `, Team ${teamNumber}` : ''}!
       </h2>
@@ -149,7 +149,7 @@ function TeamHomeView({ onTabChange }) {
         <h3 className="text-base font-bold text-gray-800">Add to your phone</h3>
       </div>
       <img
-        src="/install-guide.png"
+        src={`${import.meta.env.BASE_URL}install-guide.png`}
         alt="How to install on your phone"
         className="w-full rounded-lg"
         onError={(e) => { e.target.style.display = 'none' }}
@@ -264,7 +264,7 @@ function TeamHomeView({ onTabChange }) {
       <main className="flex-1 p-4 pl-14 md:pl-4 overflow-y-auto">
         <div className="max-w-2xl mx-auto space-y-8 pb-8">
           <div className="bg-gradient-to-r from-brand-blue/30 via-brand-yellow/30 to-brand-silver/30 rounded-2xl p-6 text-center">
-            <img src="/ScrumLogo-transparent.png" alt="Scrum Logo" className="w-14 h-14 mx-auto mb-2 drop-shadow-lg" />
+            <img src={`${import.meta.env.BASE_URL}ScrumLogo-transparent.png`} alt="Scrum Logo" className="w-14 h-14 mx-auto mb-2 drop-shadow-lg" />
             <h2 className="text-2xl font-black text-gray-800">
               Welcome{teamNumber ? `, Team ${teamNumber}` : ''}!
             </h2>
@@ -303,7 +303,7 @@ function TeamHomeView({ onTabChange }) {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto overflow-hidden relative">
               {/* Header */}
               <div className="px-4 py-3 flex items-center gap-2 bg-gradient-to-r from-brand-blue/30 via-brand-yellow/30 to-brand-silver/30">
-                <img src="/ScrumLogo-transparent.png" alt="Logo" className="w-5 h-5" />
+                <img src={`${import.meta.env.BASE_URL}ScrumLogo-transparent.png`} alt="Logo" className="w-5 h-5" />
                 <span className="text-sm font-semibold text-gray-700">Getting Started</span>
                 {hasSeenWelcome && (
                   <button onClick={closePopup} className="p-1 rounded hover:bg-white/50 transition-colors ml-auto">

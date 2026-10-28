@@ -34,7 +34,8 @@ function demoDatabase() {
 
 export default defineConfig(({ mode }) => ({
   plugins: [react(), ...(mode === 'demo' ? [demoDatabase()] : [])],
-  base: '/',
+  // Served from GitHub Pages under /Limitless-Scrum/; every asset path is built from this.
+  base: '/Limitless-Scrum/',
   build: {
     rollupOptions: {
       // Two home-screen apps from one site: the main app at /, and EN Helper

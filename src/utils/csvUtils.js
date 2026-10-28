@@ -2,7 +2,7 @@ import Papa from 'papaparse'
 
 export const loadTasksFromCSV = async () => {
   try {
-    const response = await fetch('/data/tasks.csv')
+    const response = await fetch(`${import.meta.env.BASE_URL}data/tasks.csv`)
     const csvText = await response.text()
 
     const result = Papa.parse(csvText, {

@@ -49,7 +49,7 @@ const newId = () => String(Date.now()) + Math.random().toString(36).slice(2)
 // Only ever true on the Helper's own page, never in the Scrum app's panel.
 const openedFromApp = (() => {
   try {
-    if (!window.location.pathname.startsWith('/helper')) return false
+    if (!window.location.pathname.startsWith(`${import.meta.env.BASE_URL}helper`)) return false
     if (new URLSearchParams(window.location.search).get('from') === 'app') sessionStorage.setItem('en-helper-from-app', '1')
     return sessionStorage.getItem('en-helper-from-app') === '1'
   } catch { return false }
@@ -59,7 +59,7 @@ const openedFromApp = (() => {
 // installed EN Helper app: in a browser tab, or opened inside the Scrum app by
 // a reminder. The installed app is its own app, so there you switch apps.
 const showBackToScrum = () => {
-  try { return window.location.pathname.startsWith('/helper') && (openedFromApp || !isStandalone()) } catch { return false }
+  try { return window.location.pathname.startsWith(`${import.meta.env.BASE_URL}helper`) && (openedFromApp || !isStandalone()) } catch { return false }
 }
 
 // Back to the Scrum app, on the notebook.
@@ -101,7 +101,7 @@ function Header({ name }) {
           ← Scrum
         </button>
       )}
-      <img src="/helper/icon-192.png" alt="" className="w-10 h-10 rounded-xl shadow-sm" />
+      <img src={`${import.meta.env.BASE_URL}helper/icon-192.png`} alt="" className="w-10 h-10 rounded-xl shadow-sm" />
       <div className="min-w-0">
         <h1 className="text-xl font-bold text-gray-800 leading-tight" style={{ fontFamily: "'Kalam', cursive" }}>EN Helper</h1>
         {name && <p className="text-xs text-gray-400 truncate">Signed in as {name}</p>}

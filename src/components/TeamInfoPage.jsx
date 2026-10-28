@@ -10,7 +10,7 @@ function ThemeSongPlayer() {
 
   const toggle = () => {
     if (!audioRef.current) {
-      audioRef.current = new Audio('/radical-theme.mp3')
+      audioRef.current = new Audio(`${import.meta.env.BASE_URL}radical-theme.mp3`)
       audioRef.current.addEventListener('ended', () => setPlaying(false))
     }
     if (playing) {
@@ -296,7 +296,7 @@ function TeamInfoPage({ onBack }) {
           {/* Hero competition photo */}
           <div className="relative -mx-6 -mt-6 mb-2 overflow-hidden rounded-t-2xl">
             <img
-              src="/team-hero.jpg"
+              src={`${import.meta.env.BASE_URL}team-hero.jpg`}
               alt="Our team"
               className="w-full h-80 md:h-64 object-cover"
               style={{ objectPosition: 'center 35%' }}
@@ -324,7 +324,7 @@ function TeamInfoPage({ onBack }) {
           <div className="relative">
             <div className="float-right ml-4 mb-2 w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg flex-shrink-0">
               <img
-                src="/team-selfie.png"
+                src={`${import.meta.env.BASE_URL}team-selfie.png`}
                 alt="Team group photo"
                 className="w-full h-full object-cover"
               />
@@ -347,7 +347,7 @@ function TeamInfoPage({ onBack }) {
               role="Team Captain"
               emoji="🚀"
               color="text-brand-blue-dark"
-              photo="/ScrumLogo.png"
+              photo={`${import.meta.env.BASE_URL}ScrumLogo.png`}
               bio="Keeps every subteam pulling in the same direction. Replace this with a short bio written by your captain."
             />
 
@@ -356,7 +356,7 @@ function TeamInfoPage({ onBack }) {
               role="Business Lead"
               emoji="💼"
               color="text-brand-yellow-dark"
-              photo="/ScrumLogo.png"
+              photo={`${import.meta.env.BASE_URL}ScrumLogo.png`}
               bio="Runs outreach, sponsorships and the team's story for judges. Replace this with a short bio."
               reverse
             />
@@ -366,7 +366,7 @@ function TeamInfoPage({ onBack }) {
               role="Technical Lead"
               emoji="🔧"
               color="text-brand-silver-dark"
-              photo="/ScrumLogo.png"
+              photo={`${import.meta.env.BASE_URL}ScrumLogo.png`}
               bio="Oversees build, CAD and programming so the robot performs the way it was designed to. Replace this with a short bio."
             />
           </div>
@@ -428,7 +428,7 @@ function TeamInfoPage({ onBack }) {
             </p>
             <div className="rounded-xl overflow-hidden shadow-sm">
               <img
-                src="/phone-tutorial.png"
+                src={`${import.meta.env.BASE_URL}phone-tutorial.png`}
                 alt="Step-by-step tutorial for adding the app to your phone home screen"
                 className="w-full object-contain"
               />
@@ -445,7 +445,7 @@ function TeamInfoPage({ onBack }) {
                 {/* Coach photo placeholder */}
                 <div className="w-28 h-28 rounded-xl overflow-hidden border-2 border-white shadow-lg flex-shrink-0 bg-gradient-to-br from-brand-blue/30 to-brand-yellow/30">
                   <img
-                    src="/ScrumLogo.png"
+                    src={`${import.meta.env.BASE_URL}ScrumLogo.png`}
                     alt="Our Coach"
                     className="w-full h-full object-cover"
                     onError={(e) => {

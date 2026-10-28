@@ -39,7 +39,7 @@ window.addEventListener('error', (e) => {
 // Register service worker for push notifications (web only — not supported in Capacitor WebView)
 if (!isNative && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch((err) => {
       console.error('SW registration failed:', err)
     })
   })

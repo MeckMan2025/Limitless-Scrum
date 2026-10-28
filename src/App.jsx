@@ -1646,7 +1646,7 @@ function App() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0B0F1A] via-[#101B3A] to-[#0B0F1A] flex flex-col items-center justify-center gap-4">
-        <img src="/ScrumLogo-transparent.png" alt="Loading" className="w-20 h-20 animate-spin-slow" />
+        <img src={`${import.meta.env.BASE_URL}ScrumLogo-transparent.png`} alt="Loading" className="w-20 h-20 animate-spin-slow" />
         <p className="text-gray-500 text-lg animate-pulse font-semibold">{radicalMsg}</p>
       </div>
     )

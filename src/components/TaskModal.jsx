@@ -55,7 +55,7 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
     }
 
     if (!task && localStorage.getItem('scrum-sfx-enabled') !== 'false') {
-      new Audio('/sounds/click.mp3').play().catch(() => {})
+      new Audio(`${import.meta.env.BASE_URL}sounds/click.mp3`).play().catch(() => {})
     }
 
     onSave({

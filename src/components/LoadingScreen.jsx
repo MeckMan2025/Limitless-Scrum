@@ -8,7 +8,7 @@ function LoadingScreen({ onComplete, onMusicStart }) {
   const startMusic = () => {
     const pref = localStorage.getItem('scrum-music-pref') || 'off'
     if (pref === 'off') return
-    const SONG_MAP = { 'intro': '/intro.mp3', 'radical-robotics': '/radical-robotics.mp3', 'radical-theme': '/radical-theme.mp3' }
+    const SONG_MAP = { 'intro': `${import.meta.env.BASE_URL}intro.mp3`, 'radical-robotics': `${import.meta.env.BASE_URL}radical-robotics.mp3`, 'radical-theme': `${import.meta.env.BASE_URL}radical-theme.mp3` }
     let src
     if (pref === 'random' || !SONG_MAP[pref]) {
       const songs = Object.values(SONG_MAP)

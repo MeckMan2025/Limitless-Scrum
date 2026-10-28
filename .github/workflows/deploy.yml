@@ -31,12 +31,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Client config comes from .env.production in the repo (public anon key).
       - name: Build
         run: npm run build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

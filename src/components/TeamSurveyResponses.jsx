@@ -42,7 +42,7 @@ function TeamSurveyResponses({ onBack }) {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <img src="/ScrumLogo-transparent.png" alt="Loading" className="w-12 h-12 animate-spin" />
+            <img src={`${import.meta.env.BASE_URL}ScrumLogo-transparent.png`} alt="Loading" className="w-12 h-12 animate-spin" />
             <p className="text-sm text-gray-400 mt-3">Loading responses...</p>
           </div>
         ) : responses.length === 0 ? (

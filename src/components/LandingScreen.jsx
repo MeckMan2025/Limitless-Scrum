@@ -3,7 +3,7 @@ function LandingScreen({ onGetRadical, onTeamLogin, onRadicalRundown }) {
     <div className="min-h-screen bg-gradient-to-br from-[#0B0F1A] via-[#101B3A] to-[#0B0F1A] flex items-center justify-center p-4">
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-80 space-y-6 text-center">
         <img
-          src="/ScrumLogo.png"
+          src={`${import.meta.env.BASE_URL}ScrumLogo.png`}
           alt="Scrum Logo"
           className="w-24 h-24 mx-auto rounded-2xl shadow-md"
         />

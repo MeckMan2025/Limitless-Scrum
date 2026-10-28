@@ -122,7 +122,7 @@ function TeamScoutingData() {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center">
-      <img src="/ScrumLogo-transparent.png" alt="Logo" className="w-20 h-20 drop-shadow-lg" />
+      <img src={`${import.meta.env.BASE_URL}ScrumLogo-transparent.png`} alt="Logo" className="w-20 h-20 drop-shadow-lg" />
       <h1 className="text-2xl font-bold bg-gradient-to-r from-brand-blue-dark via-brand-silver-dark to-brand-yellow-dark bg-clip-text text-transparent">
         Stay Tuned!
       </h1>

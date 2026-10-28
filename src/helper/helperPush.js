@@ -13,7 +13,7 @@ export const pushSupported = () =>
 // and the main app's notifications never arrive on this icon.
 export function registerHelperWorker() {
   if (!('serviceWorker' in navigator)) return Promise.resolve(null)
-  return navigator.serviceWorker.register('/helper/sw.js', { scope: '/helper/' }).catch((err) => {
+  return navigator.serviceWorker.register('/helper/sw.js', { scope: `${import.meta.env.BASE_URL}helper/` }).catch((err) => {
     console.warn('[EN Helper] service worker registration failed:', err)
     return null
   })
@@ -40,8 +40,8 @@ async function saveSubscription(userId, sub) {
 async function helperRegistration() {
   // getRegistration matches by URL, so with only the main app's worker it
   // would hand back that one. Check the scope is really ours.
-  const existing = await navigator.serviceWorker.getRegistration('/helper/')
-  if (!existing?.scope.endsWith('/helper/')) await registerHelperWorker()
+  const existing = await navigator.serviceWorker.getRegistration(`${import.meta.env.BASE_URL}helper/`)
+  if (!existing?.scope.endsWith(`${import.meta.env.BASE_URL}helper/`)) await registerHelperWorker()
   return Promise.race([
     navigator.serviceWorker.ready,
     new Promise(resolve => setTimeout(() => resolve(null), 5000)),

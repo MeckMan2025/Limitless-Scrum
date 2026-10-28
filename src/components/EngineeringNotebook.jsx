@@ -395,7 +395,7 @@ export default function EngineeringNotebook() {
     // save the entry without the picture the student waited for.
     if (formData._uploading) return
 
-    if (localStorage.getItem('scrum-sfx-enabled') !== 'false') new Audio('/sounds/click.mp3').play().catch(() => {})
+    if (localStorage.getItem('scrum-sfx-enabled') !== 'false') new Audio(`${import.meta.env.BASE_URL}sounds/click.mp3`).play().catch(() => {})
 
     const entryData = {
       username,
@@ -885,7 +885,7 @@ export default function EngineeringNotebook() {
                       title="EN Helper: talk instead of type"
                       className="h-11 w-11 shrink-0 rounded-xl overflow-hidden shadow-sm hover:scale-105 active:scale-95 transition-transform"
                     >
-                      <img src="/helper/icon-192.png" alt="" className="w-full h-full" />
+                      <img src={`${import.meta.env.BASE_URL}helper/icon-192.png`} alt="" className="w-full h-full" />
                     </button>
                   )}
                 </div>

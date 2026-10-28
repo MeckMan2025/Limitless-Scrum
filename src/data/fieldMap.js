@@ -22,7 +22,7 @@
 // right, audience along the bottom. The zones and flowers below are laid on
 // top of it. If it fails to load (a venue with no signal and an empty cache)
 // the field is drawn from the coordinates in this file instead.
-export const FIELD_IMAGE = '/field/field.png'
+export const FIELD_IMAGE = `${import.meta.env.BASE_URL}field/field.png`
 
 export const FIELD = {
   aspect: 1,   // square, as the drawing is
