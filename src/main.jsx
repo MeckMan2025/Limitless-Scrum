@@ -8,6 +8,10 @@ import { PresenceProvider } from './contexts/PresenceContext'
 import { ToastProvider } from './components/ToastProvider'
 import { isNative } from './utils/platform'
 import './index.css'
+import { installLocalDb } from './lib/localDb'
+
+// No-account mode: every database call is answered from the browser.
+if (import.meta.env.VITE_DEMO === 'true') installLocalDb(import.meta.env.VITE_SUPABASE_URL)
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

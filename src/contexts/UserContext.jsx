@@ -381,16 +381,31 @@ export function UserProvider({ children }) {
     // so every tab shows, and the app talks to an empty fake database on the
     // dev server instead of the real one (see vite.config.js).
     if (DEMO) {
-      const demoUser = { id: '00000000-0000-4000-8000-000000000001', email: 'demo@limitless.local' }
+      // No-account mode: one local person, a co-founder so every feature is
+      // open. Their profile row lives in the browser database like everything
+      // else, so a name set on the Profile page is still there tomorrow.
+      const demoUser = { id: '00000000-0000-4000-8000-000000000001', email: 'you@limitless.local' }
       localStorage.setItem('scrum-cached-user-id', demoUser.id)
       localStorage.setItem('scrum-user-email', demoUser.email)
       setUser(demoUser)
-      applyProfile({
-        id: demoUser.id, display_name: 'Kayden (demo)', role: 'member',
+      const defaults = {
+        id: demoUser.id, display_name: 'Team Member', role: 'member',
         function_tags: ['Co-Founder'], authority_tier: 'teammate', is_authority_admin: true,
         team_number: HOME_TEAM_NUMBER, short_bio: '',
-      }, demoUser.email)
-      setLoading(false)
+      }
+      ;(async () => {
+        let row = null
+        try {
+          const res = await fetch(`${url}/rest/v1/profiles?id=eq.${demoUser.id}&select=*`, { headers: restHeaders() })
+          const rows = res.ok ? await res.json() : []
+          row = rows[0] || null
+          if (!row) {
+            await fetch(`${url}/rest/v1/profiles`, { method: 'POST', headers: restHeaders({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }), body: JSON.stringify(defaults) })
+          }
+        } catch { /* local db unavailable: use the defaults */ }
+        applyProfile({ ...defaults, ...(row || {}) }, demoUser.email)
+        setLoading(false)
+      })()
       return
     }
     let mounted = true
