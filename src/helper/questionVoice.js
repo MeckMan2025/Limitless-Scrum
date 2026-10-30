@@ -21,7 +21,7 @@ const audio = () => {
 function loadManifest() {
   if (manifest) return Promise.resolve(manifest)
   if (!manifestLoading) {
-    manifestLoading = fetch('/helper/q/manifest.json')
+    manifestLoading = fetch(`${import.meta.env.BASE_URL}helper/q/manifest.json`)
       .then(r => (r.ok ? r.json() : {}))
       .catch(() => ({}))
       .then(m => { manifest = m; return m })
@@ -60,7 +60,7 @@ export async function speakQuestion(label, { force = false } = {}) {
   const name = m[label]
   if (name) {
     const a = audio()
-    a.src = `/helper/q/${name}.mp3`
+    a.src = `${import.meta.env.BASE_URL}helper/q/${name}.mp3`
     try { await a.play(); return } catch { /* fall through to the browser's voice */ }
   }
   try {

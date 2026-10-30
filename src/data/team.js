@@ -1,7 +1,7 @@
 // Who we are, and how a visiting team's login is put together.
 
-// CHANGE ME: your FRC team number. Everything that says "home team" keys off this.
-export const HOME_TEAM_NUMBER = '0000'
+// Our team number. Everything that says "home team" keys off this.
+export const HOME_TEAM_NUMBER = '9082'
 export const HOME_TEAM_NAME = "Limitless Scrum"
 
 export const isHomeTeamNumber = (value) => String(value || '').trim() === HOME_TEAM_NUMBER

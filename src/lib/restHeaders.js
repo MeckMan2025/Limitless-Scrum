@@ -17,9 +17,13 @@
 // are authorised exactly as before — this is the groundwork, not the fix.
 
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-const projectRef = (import.meta.env.VITE_SUPABASE_URL || '')
-  .split('//')[1]?.split('.')[0] || ''
-const STORAGE_KEY = `sb-${projectRef}-auth-token`
+// Where supabase-js keeps the session: named after the first label of the
+// API's host name, exactly as supabase-js names it.
+const projectRef = (() => {
+  try { return new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split('.')[0] } catch { return '' }
+})()
+export const AUTH_STORAGE_KEY = `sb-${projectRef}-auth-token`
+const STORAGE_KEY = AUTH_STORAGE_KEY
 
 // supabase-js keeps the session in localStorage and refreshes it in the
 // background. Reading it directly keeps this function synchronous, which

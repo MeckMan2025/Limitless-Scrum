@@ -1,0 +1,14 @@
+{
+  "name": "limitless-scrum-server",
+  "private": true,
+  "type": "module",
+  "description": "Serves Limitless Scrum and stands in for its Supabase project on the robotics server",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "pg": "^8.13.1",
+    "ws": "^8.18.0"
+  }
+}

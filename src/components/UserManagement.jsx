@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { onlyMyTeam, stampStored, teamScope } from '../lib/teamScope'
-import { restHeaders } from '../lib/restHeaders'
+import { restHeaders, AUTH_STORAGE_KEY } from '../lib/restHeaders'
 import { notifyRequestReviewers } from '../utils/requestRouting'
 import { Pencil, UserPlus, Trash2, Upload, Shield, Users, KeyRound, Info, X, Plus, Send, ChevronRight, GraduationCap } from 'lucide-react'
 import { supabase } from '../supabase'
@@ -296,8 +296,7 @@ function UserManagement({ onViewProfile }) {
   // localStorage by autoRefreshToken, so this is normally instant.
   const getAuthHeaders = async () => {
     try {
-      const ref = supabaseUrl.split('//')[1].split('.')[0]
-      const raw = window.localStorage.getItem(`sb-${ref}-auth-token`)
+      const raw = window.localStorage.getItem(AUTH_STORAGE_KEY)
       if (raw) {
         const parsed = JSON.parse(raw)
         const token = parsed?.access_token

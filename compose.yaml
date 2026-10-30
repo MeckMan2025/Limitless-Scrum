@@ -1,0 +1,24 @@
+# How the robotics server runs Limitless Scrum. At each release the server fills
+# in ${PORT_1} and ${BASE_PATH_1} (from robotics.yml) and this team's database
+# settings, for the preview and the live site separately: each has its own
+# database and its own uploaded files.
+services:
+  web:
+    build: .
+    ports:
+      - "127.0.0.1:${PORT_1}:8080"
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT}
+      BASE_PATH_1: ${BASE_PATH_1}
+      PGHOST: ${PGHOST}
+      PGPORT: ${PGPORT}
+      PGUSER: ${PGUSER}
+      PGPASSWORD: ${PGPASSWORD}
+      PGDATABASE: ${PGDATABASE}
+    volumes:
+      - uploads:/data/uploads
+    restart: unless-stopped
+
+volumes:
+  # Photos, receipts and recordings people upload. Outlives every release.
+  uploads:

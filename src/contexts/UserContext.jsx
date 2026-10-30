@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react'
-import { restHeaders, startSessionKeeper } from '../lib/restHeaders'
+import { restHeaders, startSessionKeeper, AUTH_STORAGE_KEY } from '../lib/restHeaders'
 import { supabase, arrivedFromRecoveryLink } from '../supabase'
 import { HOME_TEAM_NUMBER } from '../data/team'
 
@@ -216,6 +216,11 @@ export function UserProvider({ children }) {
   // email param avoids stale-closure issues when called from useEffect callbacks
   const applyProfile = (profile, email) => {
     if (profile) {
+      // Personal preferences saved on the account (Settings), so they are the
+      // same on every computer this person signs in on.
+      const prefs = profile.app_prefs || {}
+      if (prefs.music) localStorage.setItem('scrum-music-pref', prefs.music)
+      if (typeof prefs.sfx === 'boolean') localStorage.setItem('scrum-sfx-enabled', String(prefs.sfx))
       const userEmail = (email || user?.email || '')?.toLowerCase()
       const isAdmin = userEmail && ADMIN_EMAILS.includes(userEmail)
 
@@ -763,13 +768,20 @@ export function UserProvider({ children }) {
         ? [...new Set(['Co-Founder', ...preAssigned])]
         : preAssigned
 
-      const { error: profileError } = await supabase.from('profiles').insert({
+      const row = {
         id: data.user.id,
         display_name: displayName,
         role: role,
         authority_tier: (isPermCofounder || tags.length > 0) ? 'teammate' : 'guest',
         function_tags: tags,
-      })
+      }
+      let { error: profileError } = await supabase.from('profiles').insert(row)
+      // Signing up signs in at once, and the sign-in may already have rebuilt
+      // a stand-in profile (ensureProfile) with a name guessed from the email.
+      // The name they just typed wins.
+      if (profileError?.code === '23505') {
+        ({ error: profileError } = await supabase.from('profiles').update(row).eq('id', data.user.id))
+      }
       if (profileError) {
         console.error('Failed to create profile:', profileError.message)
       }
@@ -790,8 +802,7 @@ export function UserProvider({ children }) {
     // hang indefinitely, which showed up as "it takes forever and doesn't save".
     let saved = false
     try {
-      const ref = url.split('//')[1].split('.')[0]
-      const raw = window.localStorage.getItem(`sb-${ref}-auth-token`)
+      const raw = window.localStorage.getItem(AUTH_STORAGE_KEY)
       const token = raw ? JSON.parse(raw)?.access_token : null
       if (token) {
         const res = await fetch(`${url}/auth/v1/user`, {

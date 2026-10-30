@@ -8,6 +8,7 @@ import PasswordInput from './PasswordInput'
 import { ChangelogModal } from './ChangelogPopup'
 import ScoutingSync from './ScoutingSync'
 import { FEATURES, useFeatures, setFeature } from '../lib/features'
+import { usePermissions } from '../hooks/usePermissions'
 
 const MUSIC_OPTIONS = [
   { id: 'random', label: 'Random', description: 'Pick a random song each time' },
@@ -20,6 +21,8 @@ const MUSIC_OPTIONS = [
 export default function SettingsView() {
   const { user } = useUser()
   const features = useFeatures()
+  // The switches are the whole team's, so leads flip them.
+  const { hasLeadTag } = usePermissions()
   const { isSupported: pushSupported, isSubscribed: pushSubscribed, permission: pushPermission, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications()
   const [showChangelog, setShowChangelog] = useState(false)
   const [notifPrefs, setNotifPrefs] = useState({ enabled: true, calendar: true, chat: true })
@@ -37,6 +40,20 @@ export default function SettingsView() {
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+  // Music and sound effects follow the person, not the computer: kept on their
+  // profile as app_prefs, copied to this device when they sign in (UserContext).
+  const saveAppPref = (patch) => {
+    if (!user) return
+    fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}&select=app_prefs`, { headers: restHeaders() })
+      .then(res => res.ok ? res.json() : [])
+      .then(rows => fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
+        method: 'PATCH',
+        headers: { ...restHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ app_prefs: { ...(rows[0]?.app_prefs || {}), ...patch } }),
+      }))
+      .catch(err => console.error('Failed to save preference:', err))
+  }
 
   // Load notification prefs from profile
   useEffect(() => {
@@ -83,7 +100,11 @@ export default function SettingsView() {
           <LayoutGrid size={16} className="text-brand-blue-dark" />
           Features
         </h3>
-        <p className="text-xs text-gray-400 mb-3">Switch on the parts of the app you want. Anything off disappears from the menu.</p>
+        <p className="text-xs text-gray-400 mb-3">
+          {hasLeadTag
+            ? 'Switch on the parts of the app the team uses. This changes the app for everyone on every computer; anything off disappears from the menu.'
+            : 'The parts of the app the team uses. Leads switch these on and off for everyone.'}
+        </p>
         <div className="divide-y divide-gray-100">
           {FEATURES.map(f => (
             <div key={f.key} className="flex items-center justify-between gap-4 py-2.5">
@@ -95,7 +116,7 @@ export default function SettingsView() {
                 role="switch"
                 aria-checked={!!features[f.key]}
                 aria-label={f.label}
-                disabled={f.locked}
+                disabled={f.locked || !hasLeadTag}
                 onClick={() => setFeature(f.key, !features[f.key])}
                 className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-60 ${
                   features[f.key] ? 'bg-brand-blue-dark' : 'bg-gray-300'
@@ -236,6 +257,7 @@ export default function SettingsView() {
               onClick={() => {
                 setMusicPref(opt.id)
                 localStorage.setItem('scrum-music-pref', opt.id)
+                saveAppPref({ music: opt.id })
               }}
               className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-colors ${
                 musicPref === opt.id
@@ -266,6 +288,7 @@ export default function SettingsView() {
               const next = !sfxEnabled
               setSfxEnabled(next)
               localStorage.setItem('scrum-sfx-enabled', String(next))
+              saveAppPref({ sfx: next })
             }}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
               sfxEnabled ? 'bg-brand-blue-dark' : 'bg-gray-300'

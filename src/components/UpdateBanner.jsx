@@ -35,10 +35,10 @@ function runningBundle() {
 // never produce a banner.
 async function servedBundle() {
   try {
-    const res = await fetch(`/index.html?v=${Date.now()}`, { cache: 'no-store' })
+    const res = await fetch(`${import.meta.env.BASE_URL}index.html?v=${Date.now()}`, { cache: 'no-store' })
     if (!res.ok) return null
     const html = await res.text()
-    return html.match(/src="(\/assets\/index-[A-Za-z0-9_-]+\.js)"/)?.[1] || null
+    return html.match(/src="([^"]*\/assets\/index-[A-Za-z0-9_-]+\.js)"/)?.[1] || null
   } catch {
     return null
   }

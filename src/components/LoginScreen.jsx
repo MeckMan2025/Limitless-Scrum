@@ -245,12 +245,9 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
             required
           />
 
-          {/* Said here because this is where the choice gets made, and it is
-              only discovered later — when the reset email never arrives and
-              nobody can do anything about it from this end. */}
           <p className="text-xs text-gray-400 text-center -mt-1">
-            Use a personal email if you can. School accounts often block the
-            password reset email, and there's no way to get you back in without it.
+            Use the address a lead invited. Forgot your password later? A lead
+            can reset it for you in User Management.
           </p>
 
           {error && <p className="text-sm text-red-500 text-center">{error}</p>}
@@ -488,8 +485,17 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
             </button>
           </p>
 
+          {/* A lead invites an address in User Management; that person then
+              makes their own account here. */}
           <p className="text-xs text-center text-gray-400">
-            No account? Ask a team lead to add you.
+            Invited by a lead?{' '}
+            <button
+              type="button"
+              onClick={() => { setMode('signup'); setError('') }}
+              className="text-brand-yellow-dark font-semibold hover:underline"
+            >
+              Create your account
+            </button>
           </p>
 
           {onBack && (

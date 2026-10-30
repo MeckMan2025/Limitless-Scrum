@@ -1,6 +1,9 @@
 // Service Worker — Push notification receiver only (no caching/offline)
 
-const ICON = '/Limitless-Scrum/ScrumLogo.png'
+// Everything is relative to where the app is served (its scope), which is
+// /scrum/ on the robotics server.
+const BASE = new URL(self.registration.scope).pathname
+const ICON = `${BASE}ScrumLogo.png`
 
 self.addEventListener('push', (event) => {
   let data = { title: 'New Notification', body: '', icon: ICON }
@@ -28,7 +31,8 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close()
   // A notification can name the page it is about (the EN Helper reminder
   // sends '/helper/'). Without one, it opens the app as it always has.
-  const target = event.notification.data?.url
+  const named = event.notification.data?.url
+  const target = named ? BASE + String(named).replace(/^\//, '') : null
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
@@ -40,7 +44,7 @@ self.addEventListener('notificationclick', (event) => {
         if (new URL(client.url).pathname.startsWith(target)) return client.focus()
         if ('navigate' in client) return client.navigate(target).then(c => (c || client).focus())
       }
-      return clients.openWindow(target || '/Limitless-Scrum/')
+      return clients.openWindow(target || BASE)
     })
   )
 })

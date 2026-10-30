@@ -13,7 +13,7 @@ export const pushSupported = () =>
 // and the main app's notifications never arrive on this icon.
 export function registerHelperWorker() {
   if (!('serviceWorker' in navigator)) return Promise.resolve(null)
-  return navigator.serviceWorker.register('/helper/sw.js', { scope: `${import.meta.env.BASE_URL}helper/` }).catch((err) => {
+  return navigator.serviceWorker.register(`${import.meta.env.BASE_URL}helper/sw.js`, { scope: `${import.meta.env.BASE_URL}helper/` }).catch((err) => {
     console.warn('[EN Helper] service worker registration failed:', err)
     return null
   })

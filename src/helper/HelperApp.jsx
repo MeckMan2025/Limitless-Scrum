@@ -330,7 +330,7 @@ export function Recorder({ embedded = false }) {
   const [speaking, setSpeaking] = useState(false)
   const speak = () => {
     if (!audioRef.current) {
-      audioRef.current = new Audio('/helper/prompt.mp3')
+      audioRef.current = new Audio(`${import.meta.env.BASE_URL}helper/prompt.mp3`)
       audioRef.current.onended = () => setSpeaking(false)
     }
     const a = audioRef.current

@@ -1,0 +1,9 @@
+# Which address goes to which container. Read by the robotics server.
+#   main branch  -> https://dev-<team>.firstpvrobotics.com/scrum/  (mentors only, the preview)
+#   tag v1.2.3   -> https://<team>.firstpvrobotics.com/scrum/      (live, for everyone)
+# public: the app has its own sign-in, so live asks for no mentor password.
+apps:
+  - path: /scrum
+    port: 1
+    health: /healthz
+    public: true

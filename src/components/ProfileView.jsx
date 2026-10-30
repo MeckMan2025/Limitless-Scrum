@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { restHeaders, ensureUserToken } from '../lib/restHeaders'
+import { restHeaders, ensureUserToken, AUTH_STORAGE_KEY } from '../lib/restHeaders'
 import { notifyLeadOfCoLeadAction } from '../lib/coLeadNotice'
 import { fetchMyTasks } from '../lib/taskTeams'
 import { User, ChevronDown, AlertTriangle, CheckCircle, Clock, Lock, XCircle, Wrench, Shield, MessageCircle, Camera } from 'lucide-react'
@@ -145,8 +145,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
   // so RLS is satisfied when an admin edits another member's roles.
   const getAuthHeaders = () => {
     try {
-      const ref = supabaseUrl.split('//')[1].split('.')[0]
-      const raw = window.localStorage.getItem(`sb-${ref}-auth-token`)
+      const raw = window.localStorage.getItem(AUTH_STORAGE_KEY)
       if (raw) {
         const parsed = JSON.parse(raw)
         const token = parsed?.access_token

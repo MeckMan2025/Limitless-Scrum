@@ -5,10 +5,12 @@
 // notebook reminders come from the EN Helper icon and nothing else does.
 // Push only: no caching, the same as the main app's /sw.js.
 
-const ICON = '/helper/icon-192.png'
+// The helper's own folder (its scope), /scrum/helper/ on the robotics server.
+const HELPER = new URL(self.registration.scope).pathname
+const ICON = `${HELPER}icon-192.png`
 
 self.addEventListener('push', (event) => {
-  let data = { title: 'EN Helper', body: '', url: '/helper/' }
+  let data = { title: 'EN Helper', body: '', url: HELPER }
   try {
     if (event.data) data = { ...data, ...event.data.json() }
   } catch {
@@ -31,9 +33,9 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
       for (const client of list) {
-        if (client.url.includes('/helper/') && 'focus' in client) return client.focus()
+        if (client.url.includes(HELPER) && 'focus' in client) return client.focus()
       }
-      return clients.openWindow('/helper/')
+      return clients.openWindow(HELPER)
     })
   )
 })

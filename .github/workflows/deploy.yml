@@ -1,9 +1,17 @@
-# Builds and deploys the Vite app to GitHub Pages
-name: Deploy to GitHub Pages
+# The app runs on the robotics server now (compose.yaml, robotics.yml): the
+# server pulls this repository by itself, main to the preview and v* tags to
+# live. Nothing here deploys it.
+#
+# This workflow does two things on every push to main:
+#   1. checks that the app builds and the server starts its code cleanly;
+#   2. publishes, at the old GitHub Pages address, a page that forwards to the
+#      live app, so old bookmarks and home-screen icons still get there.
+name: Build, and point GitHub Pages at the server
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -12,43 +20,65 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  # Where the live app is. Change this one line if it moves.
+  LIVE_URL: https://9082.firstpvrobotics.com/scrum/
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Server code loads
+        run: |
+          cd server && npm ci
+          for f in *.js; do node --check "$f"; done
 
-      - name: Install dependencies
-        run: npm ci
-
-      # Client config comes from .env.production in the repo (public anon key).
-      - name: Build
-        run: npm run build
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+  redirect:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write the forwarding page
+        run: |
+          mkdir site
+          cat > site/index.html <<EOF
+          <!DOCTYPE html>
+          <html lang="en">
+            <head>
+              <meta charset="UTF-8" />
+              <title>Limitless Scrum has moved</title>
+              <meta http-equiv="refresh" content="0; url=${LIVE_URL}" />
+              <link rel="canonical" href="${LIVE_URL}" />
+              <script>location.replace('${LIVE_URL}')</script>
+            </head>
+            <body>
+              <p>Limitless Scrum has moved to <a href="${LIVE_URL}">${LIVE_URL}</a>.</p>
+            </body>
+          </html>
+          EOF
+          cp site/index.html site/404.html
+      - uses: actions/configure-pages@v4
+      - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: ./site
 
   deploy:
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
+    needs: redirect
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
