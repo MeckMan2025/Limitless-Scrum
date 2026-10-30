@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useUser } from '../contexts/UserContext'
 import { ClipboardList, AlertTriangle, Pause, Tent, BookOpen, Maximize2, X } from 'lucide-react'
-import { HONEYCOMB_CELLS, HONEY_WASH } from './HomeView'
+import { HONEYCOMB_CELLS, HONEY_WASH } from '../lib/homeScreen'
 import { ALL_TEAMS } from '../data/teams'
 import { storedTeamScope } from '../lib/teamScope'
 import { restHeaders, ensureUserToken } from '../lib/restHeaders'

@@ -3,7 +3,7 @@ import { storedTeamScope, teamScope } from '../lib/teamScope'
 import { restHeaders } from '../lib/restHeaders'
 import { fetchMyTasks } from '../lib/taskTeams'
 import { SEASON_GOALS } from '../lib/seasonGoals'
-import { BookOpen, Calendar, ArrowRight, Camera, Lightbulb, Send, Trash2, Check, X, Plus, ChevronLeft, ChevronRight, Target, Bot, ClipboardCheck, Grid3x3 } from 'lucide-react'
+import { BookOpen, Calendar, ArrowRight, Camera, Lightbulb, Send, Trash2, Check, X, Plus, ChevronLeft, ChevronRight, Target, Bot, ClipboardCheck, Grid3x3, Eye, EyeOff, Pencil, ImagePlus } from 'lucide-react'
 import { useUser } from '../contexts/UserContext'
 import { usePermissions } from '../hooks/usePermissions'
 import { supabase } from '../supabase'
@@ -11,6 +11,7 @@ import NotificationBell from './NotificationBell'
 import NotebookGallery from './NotebookGallery'
 import { uploadImageFile } from '../lib/photos'
 import { HOME_TEAM_NUMBER } from '../data/team'
+import { HOME_WIDGETS, BACKGROUND_PRESETS, useHomeScreen, setWidgetHidden, setBackground, backgroundStyle } from '../lib/homeScreen'
 
 const STATUS_STYLES = {
   pending: 'bg-yellow-100 text-yellow-700',
@@ -38,16 +39,6 @@ function markMeasures(text) {
   )
 }
 
-// Honeycomb, after the BioBuzz comb: flat-top cells in mixed honey tones. The
-// logo's black walls are what make it read as a badge; behind a page of text
-// that would fight everything on top of it, so the walls here are soft amber
-// and the whole thing is faint. Generated flat-top hexagons on a 3r x sqrt(3)r
-// tile, which is the smallest patch of a honeycomb that repeats seamlessly.
-export const HONEYCOMB_CELLS = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='52' viewBox='0 0 90.00 51.96'%3E%3Cpolygon points='30.00,25.98 15.00,51.96 -15.00,51.96 -30.00,25.98 -15.00,0.00 15.00,0.00' fill='%23fde68a' fill-opacity='0.55'/%3E%3Cpolygon points='75.00,0.00 60.00,25.98 30.00,25.98 15.00,0.00 30.00,-25.98 60.00,-25.98' fill='%23fef3c7' fill-opacity='0.55'/%3E%3Cpolygon points='75.00,51.96 60.00,77.94 30.00,77.94 15.00,51.96 30.00,25.98 60.00,25.98' fill='%23fef3c7' fill-opacity='0.55'/%3E%3Cpolygon points='120.00,25.98 105.00,51.96 75.00,51.96 60.00,25.98 75.00,0.00 105.00,0.00' fill='%23f8d77a' fill-opacity='0.55'/%3E%3Cpolygon points='30.00,25.98 15.00,51.96 -15.00,51.96 -30.00,25.98 -15.00,0.00 15.00,0.00' fill='none' stroke='%23e0a92e' stroke-opacity='0.45' stroke-width='2.5'/%3E%3Cpolygon points='75.00,0.00 60.00,25.98 30.00,25.98 15.00,0.00 30.00,-25.98 60.00,-25.98' fill='none' stroke='%23e0a92e' stroke-opacity='0.45' stroke-width='2.5'/%3E%3Cpolygon points='75.00,51.96 60.00,77.94 30.00,77.94 15.00,51.96 30.00,25.98 60.00,25.98' fill='none' stroke='%23e0a92e' stroke-opacity='0.45' stroke-width='2.5'/%3E%3Cpolygon points='120.00,25.98 105.00,51.96 75.00,51.96 60.00,25.98 75.00,0.00 105.00,0.00' fill='none' stroke='%23e0a92e' stroke-opacity='0.45' stroke-width='2.5'/%3E%3C/svg%3E\")"
-
-// The honey the comb sits in.
-export const HONEY_WASH = 'linear-gradient(160deg, #fffdf5 0%, #fff8e7 45%, #fdf0d5 100%)'
-
 // Little flowers where the task bullets go, cycling the team's three colours.
 // Drawn rather than an emoji so they sit on the baseline and take the colours.
 // Petals carry the colour, the middle is always yellow — that's what makes a
@@ -68,6 +59,95 @@ function Flower({ i = 0, size = 18 }) {
   )
 }
 
+// One widget on the home screen. Hidden widgets are not drawn at all, except
+// while a lead is editing the screen: then every widget shows, hidden ones
+// faded, each with its own Hide / Show button.
+function Widget({ id, hidden, editing, className = '', children }) {
+  const isHidden = !!hidden?.[id]
+  if (!editing) return isHidden ? null : children
+  const label = HOME_WIDGETS.find(w => w.key === id)?.label || id
+  return (
+    <div className={`relative rounded-xl border-2 border-dashed p-1 ${isHidden ? 'border-gray-300' : 'border-brand-blue/60'} ${className}`}>
+      <div className={`w-full flex flex-col pointer-events-none select-none ${isHidden ? 'opacity-30' : ''}`}>{children}</div>
+      <button
+        onClick={() => setWidgetHidden(id, !isHidden)}
+        className={`absolute top-2 right-2 z-[1] flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold shadow ${
+          isHidden ? 'bg-white text-gray-600 border border-gray-300' : 'bg-brand-blue-dark text-white'
+        }`}
+      >
+        {isHidden ? <><Eye size={12} /> Show {label}</> : <><EyeOff size={12} /> Hide {label}</>}
+      </button>
+    </div>
+  )
+}
+
+// The background picker, shown at the top of the home screen while editing.
+function BackgroundEditor({ background, onDone }) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+  const fileRef = useRef(null)
+  const current = background?.kind === 'preset' || !background?.kind ? (background?.preset || 'honeycomb') : null
+  const upload = async (file) => {
+    if (!file) return
+    setUploading(true); setError('')
+    try {
+      const url = await uploadImageFile(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY, 'home-backgrounds', file)
+      await setBackground({ kind: 'image', url })
+    } catch {
+      setError("That picture couldn't be uploaded. Try a JPEG or PNG.")
+    }
+    setUploading(false)
+    if (fileRef.current) fileRef.current.value = ''
+  }
+  const swatch = (selected) => `h-12 rounded-lg border-2 transition-all ${selected ? 'border-brand-blue-dark ring-2 ring-brand-blue/40' : 'border-white hover:border-gray-300'}`
+  return (
+    <section className="bg-white rounded-xl shadow-md border border-brand-blue/30 p-4 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="font-semibold text-gray-700">Edit home screen</h2>
+          <p className="text-xs text-gray-400">Changes are for everyone on the team, on every computer. Hide or show each part below.</p>
+        </div>
+        <button onClick={onDone} className="shrink-0 px-3 py-1.5 rounded-lg bg-brand-blue-dark text-white text-sm font-semibold hover:opacity-90">Done</button>
+      </div>
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Background</p>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          {BACKGROUND_PRESETS.map(p => (
+            <button key={p.key} onClick={() => setBackground({ kind: 'preset', preset: p.key })} title={p.label} className="flex flex-col items-center gap-1">
+              <span className={`w-full ${swatch(current === p.key)}`} style={p.css} />
+              <span className="text-[11px] text-gray-600">{p.label}</span>
+            </button>
+          ))}
+          <label title="A colour" className="flex flex-col items-center gap-1 cursor-pointer">
+            <span className={`w-full ${swatch(background?.kind === 'color')}`} style={background?.kind === 'color'
+              ? { backgroundColor: background.color }
+              : { backgroundImage: 'conic-gradient(#FFE27A, #F6C445, #8FB8FF, #3B5BDB, #D9DEE6, #FFE27A)' }}>
+              <input
+                type="color"
+                value={background?.kind === 'color' ? background.color : '#ffe27a'}
+                onChange={(e) => setBackground({ kind: 'color', color: e.target.value })}
+                className="opacity-0 w-full h-full cursor-pointer"
+              />
+            </span>
+            <span className="text-[11px] text-gray-600">Colour</span>
+          </label>
+          <button onClick={() => fileRef.current?.click()} disabled={uploading} title="A picture" className="flex flex-col items-center gap-1">
+            <span
+              className={`w-full flex items-center justify-center bg-gray-50 ${swatch(background?.kind === 'image')}`}
+              style={background?.kind === 'image' ? { backgroundImage: `url("${background.url}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+            >
+              {background?.kind !== 'image' && <ImagePlus size={18} className="text-gray-400" />}
+            </span>
+            <span className="text-[11px] text-gray-600">{uploading ? 'Uploading…' : 'Picture'}</span>
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => upload(e.target.files?.[0])} />
+        </div>
+        {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
+      </div>
+    </section>
+  )
+}
+
 function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
   const { username, user, functionTags } = useUser()
   const { isGuest, hasLeadTag, myTeamNumber } = usePermissions()
@@ -79,6 +159,11 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
   // takes the full width instead of leaving a gap where the note was.
   const isHomeTeam = !myTeamNumber || myTeamNumber === HOME_TEAM_NUMBER
   const showGoals = isHomeTeam
+
+  // What the team has hidden, and the background (lib/homeScreen.js). Leads
+  // change both here, in edit mode.
+  const { hidden = {}, background } = useHomeScreen()
+  const [editing, setEditing] = useState(false)
 
   const [nextEvent, setNextEvent] = useState(null)
   const [eventLoading, setEventLoading] = useState(true)
@@ -429,18 +514,29 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
               Welcome back{username ? `, ${username}` : ''}! <span title="Season kickoff">🐝</span>
             </p>
           </div>
-          <NotificationBell />
+          <div className="flex items-center gap-2">
+            {hasLeadTag && !editing && (
+              <button
+                onClick={() => setEditing(true)}
+                title="Edit home screen"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-gray-200 border border-white/20 hover:bg-white/10"
+              >
+                <Pencil size={13} /> <span className="hidden sm:inline">Edit home screen</span>
+              </button>
+            )}
+            <NotificationBell />
+          </div>
         </div>
       </header>
 
       <main
         className="flex-1 p-4 overflow-y-auto space-y-4"
-        style={{
-          backgroundImage: `${HONEYCOMB_CELLS}, ${HONEY_WASH}`,
-          backgroundAttachment: 'local',
-        }}
+        style={backgroundStyle(background)}
       >
+        {editing && <BackgroundEditor background={background} onDone={() => setEditing(false)} />}
+
         {/* Mini Week Calendar */}
+        <Widget id="week" hidden={hidden} editing={editing}>
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-3">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">This Week</h2>
@@ -484,9 +580,11 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
             })}
           </div>
         </div>
+        </Widget>
 
         {/* One row of shortcut tiles. Leads, mentors and coaches also get the
             two pages used during a meeting. */}
+        <Widget id="shortcuts" hidden={hidden} editing={editing}>
         {(() => {
           const tiles = [
             ...(hasLeadTag ? [
@@ -520,11 +618,13 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
             </div>
           )
         })()}
+        </Widget>
 
         {/* My Tasks and the season's goals, side by side — or My Tasks alone,
             full width, on a team that doesn't share our goals. */}
         <div className="flex flex-col md:flex-row gap-4 items-stretch">
 
+          <Widget id="tasks" hidden={hidden} editing={editing} className="w-full md:flex-1 flex">
           <section className="w-full md:flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-gray-100 p-4 min-h-[240px] max-h-[442px] overflow-hidden">
               <div className="flex items-center gap-2 mb-2">
                 <Target size={18} className="text-brand-gold-dark" />
@@ -614,12 +714,14 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
                 </div>
               </div>
             </section>
+          </Widget>
 
           {/* RIGHT column — the goals note. Wider than the countdowns were,
               since these are sentences rather than a number. Absent entirely
               on a team with its own goals, so My Tasks gets the room. */}
           {showGoals && (
-          <div className="w-full md:w-[21rem] flex flex-col gap-5 shrink-0">
+          <Widget id="goals" hidden={hidden} editing={editing} className="w-full md:w-auto flex">
+          <div className={`w-full flex flex-col gap-5 shrink-0 ${hidden.tasks && !editing ? 'md:flex-1' : 'md:w-[21rem]'}`}>
 
             {/* The season's goals, in place of the three countdowns. They are
                 what the team is actually measured against, so they earn the
@@ -646,11 +748,15 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
               </ol>
             </section>
           </div>
+          </Widget>
           )}
         </div>
 
         {/* Season Timeline (top of the Home Page) */}
 
+        {(editing || compDayActive || (compDayPreview && !isGuest)) && (
+        <Widget id="compDay" hidden={hidden} editing={editing}>
+        <div className="space-y-4">
         {/* Comp Day Banner */}
         {compDayActive && (
           <button
@@ -695,13 +801,23 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
           </div>
         )}
 
+        {!compDayActive && !(compDayPreview && !isGuest) && (
+          <div className="bg-white/80 rounded-xl p-4 text-sm text-gray-400">Competition day: your roles, and a banner while it is live. Nothing to show today.</div>
+        )}
+        </div>
+        </Widget>
+        )}
+
         {/* Engineering Notebook photo gallery */}
+        <Widget id="gallery" hidden={hidden} editing={editing}>
         <NotebookGallery onTabChange={onTabChange} />
+        </Widget>
 
         {/* 4. Random Quote Footer — and the way in to adding one. The quote is
             what you are looking at when you think of one, so it is a better
             door than a tile at the top that said the same thing. */}
         {!isGuest && (
+          <Widget id="quote" hidden={hidden} editing={editing}>
           <div className="text-center py-3">
             <button
               onClick={() => onOpenSpecial?.('quotes')}
@@ -723,6 +839,7 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
               </span>
             </button>
           </div>
+          </Widget>
         )}
       </main>
 

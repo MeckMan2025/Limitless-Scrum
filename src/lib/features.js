@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
-import { supabase } from '../supabase'
-import { restHeaders } from './restHeaders'
+import { useMemo } from 'react'
+import { teamDoc } from './teamDoc'
 
 // What the app is made of, and which parts are switched on.
 //
@@ -9,12 +8,9 @@ import { restHeaders } from './restHeaders'
 // feature is off has no link in the sidebar, and opening it any other way
 // (a saved tab, a notification) lands on the boards instead.
 //
-// The switches are the team's, not the device's: one document in the
-// database (scouting_schedule, id 'feature_switches', the same place the
-// team-wide app settings live), so every account on every computer sees the
-// same app, and a switch flipped on one computer flips on the others as it
-// happens. This device keeps a copy so the menu is right before the first
-// answer arrives.
+// The switches are the team's, not the device's (teamDoc.js): every account
+// on every computer sees the same app, and a switch flipped on one computer
+// flips on the others as it happens.
 export const FEATURES = [
   { key: 'boards', label: 'Scrum boards', desc: 'Boards, tasks and the Main view. Always on.', locked: true, tabs: ['tasks'] },
   { key: 'home', label: 'Home dashboard', desc: 'The home page with goals, quick links and your tasks.', tabs: ['home'] },
@@ -44,82 +40,23 @@ export const FEATURES = [
 // and the account itself.
 const ALWAYS_TABS = ['settings', 'profile', 'user-management']
 
-const KEY = 'scrum-features'
 const DEFAULTS = Object.fromEntries(FEATURES.map(f => [f.key, f.key === 'boards']))
 const TAB_TO_FEATURE = Object.fromEntries(FEATURES.flatMap(f => (f.tabs || []).map(t => [t, f.key])))
 
-export function getFeatures() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(KEY) || '{}')
-    return { ...DEFAULTS, ...saved, boards: true }
-  } catch {
-    return { ...DEFAULTS }
-  }
-}
+const doc = teamDoc('feature_switches', 'scrum-features')
+const withDefaults = (saved) => ({ ...DEFAULTS, ...saved, boards: true })
 
-const DOC_ID = 'feature_switches'
-const url = import.meta.env.VITE_SUPABASE_URL
-
-const listeners = new Set()
-function apply(saved) {
-  const next = { ...DEFAULTS, ...(saved || {}), boards: true }
-  try { localStorage.setItem(KEY, JSON.stringify(next)) } catch { /* ignore */ }
-  listeners.forEach(l => l())
-}
-
-// Read the team's switches once and keep listening, for as long as the app is
-// open. Started by the first screen that asks; again after signing in, since
-// before that the database answers nobody.
-let syncing = null
-let channel = null
-async function startSync() {
-  if (syncing) return syncing
-  syncing = (async () => {
-    try {
-      const res = await fetch(`${url}/rest/v1/scouting_schedule?id=eq.${DOC_ID}&select=data`, { headers: restHeaders() })
-      if (!res.ok) { syncing = null; return }
-      const rows = await res.json()
-      if (rows[0]?.data) apply(rows[0].data)
-    } catch { syncing = null; return }
-    if (!channel) {
-      channel = supabase
-        .channel('feature-switches')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'scouting_schedule', filter: `id=eq.${DOC_ID}` }, (p) => {
-          if (p.new?.data) apply(p.new.data)
-        })
-        .subscribe()
-    }
-  })()
-  return syncing
-}
-supabase.auth.onAuthStateChange((event) => {
-  if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') { syncing = null; startSync() }
-})
+export const getFeatures = () => withDefaults(doc.get())
 
 // For the whole team. Settings only offers the switches to leads.
-export async function setFeature(key, on) {
+export function setFeature(key, on) {
   if (key === 'boards') return
-  const next = { ...getFeatures(), [key]: !!on }
-  apply(next)
-  try {
-    await fetch(`${url}/rest/v1/scouting_schedule`, {
-      method: 'POST',
-      headers: restHeaders({ 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates, return=minimal' }),
-      body: JSON.stringify({ id: DOC_ID, data: next }),
-    })
-  } catch { /* offline: this device keeps it, and the next change carries it */ }
+  return doc.set({ ...getFeatures(), [key]: !!on })
 }
 
 export function useFeatures() {
-  const [features, setFeatures] = useState(getFeatures)
-  useEffect(() => {
-    const update = () => setFeatures(getFeatures())
-    listeners.add(update)
-    window.addEventListener('storage', update)
-    startSync()
-    return () => { listeners.delete(update); window.removeEventListener('storage', update) }
-  }, [])
-  return features
+  const saved = doc.use()
+  return useMemo(() => withDefaults(saved), [saved])
 }
 
 // Is this tab open with these switches? Any tab no feature claims is a board.
