@@ -35,11 +35,24 @@ link. A lead resets the password in User Management instead.
 The very first account has to be invited from the robotics server's shell,
 since nobody can sign in yet:
 
-    sudo robotics-team docker 9082 exec live-web-1 node server/cli.js approve someone@example.org Co-Founder
-    sudo robotics-team docker 9082 exec live-web-1 node server/cli.js reset someone@example.org   # temporary password
-    sudo robotics-team docker 9082 exec live-web-1 node server/cli.js list
+    sudo robotics-team docker 9082 exec live-scrum-1 node server/cli.js approve someone@example.org Co-Founder
+    sudo robotics-team docker 9082 exec live-scrum-1 node server/cli.js reset someone@example.org   # temporary password
+    sudo robotics-team docker 9082 exec live-scrum-1 node server/cli.js list
 
-Use `dev-web-1` for the preview, which has its own database and accounts.
+Use `dev-scrum-1` for the preview, which has its own database and accounts.
+
+## Releasing a new version
+
+On the robotics server this app runs as part of team 9082's repository,
+[team-website-9082](https://github.com/Pleasant-Valley-Robotics/team-website-9082),
+whose `compose.yaml` builds it from this repository at a tag. To release:
+
+1. Push to `main` here, then tag it: `git tag v1.0.1 && git push origin v1.0.1`.
+2. In team-website-9082, a pull request changing `#v1.0.0` to `#v1.0.1` in
+   `compose.yaml`. Merging it updates the preview
+   (https://dev-9082.firstpvrobotics.com/scrum/, mentor password).
+3. A new release tag there (`v3.2.1`, ...) puts it live at
+   https://9082.firstpvrobotics.com/scrum/.
 
 ## Running it on a computer
 

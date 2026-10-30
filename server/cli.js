@@ -8,7 +8,7 @@
 //   node server/cli.js list                      accounts and invitations
 //
 // On the robotics server, inside the running container:
-//   sudo robotics-team docker 9082 exec live-web-1 node server/cli.js approve someone@example.org Co-Founder
+//   sudo robotics-team docker 9082 exec live-scrum-1 node server/cli.js approve someone@example.org Co-Founder
 
 import { randomBytes, randomUUID } from 'node:crypto'
 import { pool, migrate, readTable, lockTable, putRow, transaction } from './db.js'

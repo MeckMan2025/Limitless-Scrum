@@ -5,14 +5,14 @@ A copy of Everything That's Scrum, rebranded and recolored (blue, black, yellow,
 ## Where it runs
 
 On the PV Robotics server, with sign-in, and with every account and computer seeing the same boards, calendar and
-settings as they change. The server pulls this repository by itself:
+settings as they change.
 
-| Push | Goes to |
-|---|---|
-| `main` | the preview, `https://dev-<team>.firstpvrobotics.com/scrum/` (mentor password) |
-| a tag like `v1.0.0` | live, `https://<team>.firstpvrobotics.com/scrum/` |
+Live: **https://9082.firstpvrobotics.com/scrum/** (preview: https://dev-9082.firstpvrobotics.com/scrum/, mentor
+password). It runs beside team 9082's website, from that team's repository, which builds this one at a tag; how to
+release a new version is in [server/README.md](server/README.md).
 
-`Dockerfile`, `compose.yaml` and `robotics.yml` describe it to the server; `server/` is the app's own back end, which
+The server builds `Dockerfile` (`compose.yaml` and `robotics.yml` here would run it as a team of its own); `server/` is
+the app's own back end, which
 stands in for the Supabase project the app was written against. Accounts, the first invitation, and running it on
 your own computer are in [server/README.md](server/README.md). The old GitHub Pages address now forwards to live.
 
