@@ -125,7 +125,7 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
               <button
                 type="button"
                 onClick={onBackToPerson}
-                className="flex items-center gap-1 text-xs font-semibold text-brand-blue-dark hover:underline mb-0.5"
+                className="flex items-center gap-1 text-xs font-semibold text-brand-blue-ink hover:underline mb-0.5"
               >
                 <ArrowLeft size={12} /> Back to {backToPerson}'s tasks
               </button>
@@ -151,7 +151,7 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-blue-ink focus:border-transparent"
               placeholder="Enter task title"
               required
             />
@@ -167,14 +167,14 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
                 setFormData({ ...formData, description: e.target.value })
                 if (showErrors && e.target.value.trim()) setShowErrors(false)
               }}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent ${
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-blue-ink focus:border-transparent ${
                 showErrors && descriptionMissing ? 'border-red-500' : ''
               }`}
               placeholder="Describe the task"
               rows={3}
             />
             {showErrors && descriptionMissing && (
-              <p className="text-red-500 text-sm mt-1">Description is required</p>
+              <p className="text-red-600 text-sm mt-1">Description is required</p>
             )}
           </div>
 
@@ -183,7 +183,7 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
                 team: it becomes one task sitting on each of their boards. */}
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Sides of the team{' '}
-              <span className="text-xs font-normal text-gray-400">(it shows on each one's board)</span>
+              <span className="text-xs font-normal text-gray-600">(it shows on each one's board)</span>
             </label>
             <div className="flex flex-wrap gap-2">
               {SIDES.map(side => (
@@ -193,8 +193,8 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
                   onClick={() => toggleSide(side.key)}
                   className={`px-3 py-1 rounded-full text-sm transition-colors ${
                     formData.sides.includes(side.key)
-                      ? 'bg-brand-blue text-gray-700'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      ? 'bg-brand-blue text-brand-black'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   {side.emoji} {side.label}
@@ -202,7 +202,7 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
               ))}
             </div>
             {formData.sides.length > 1 && (
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-gray-600 mt-1">
                 One task on {formData.sides.length} boards — moving it along on any of them moves it on all of them.
               </p>
             )}
@@ -212,7 +212,7 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Who's on it {formData.sides.length === 0 && '*'}{' '}
-                <span className="text-xs font-normal text-gray-400">(tick as many as you need)</span>
+                <span className="text-xs font-normal text-gray-600">(tick as many as you need)</span>
               </label>
 
               {/* Up for Grabs and Everyone are the whole answer on their own, so
@@ -225,8 +225,8 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
                     onClick={() => setSpecial(sp.value)}
                     className={`px-3 py-1 rounded-full text-sm transition-colors ${
                       formData.assignees[0] === sp.value
-                        ? 'bg-brand-blue text-gray-700'
-                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        ? 'bg-brand-blue text-brand-black'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     {sp.label}
@@ -250,26 +250,26 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
                       onChange={() => togglePerson(n)}
                       className="accent-brand-blue-dark"
                     />
-                    <span className={memberNames.includes(n) ? '' : 'text-gray-400 italic'}>
+                    <span className={memberNames.includes(n) ? '' : 'text-gray-600 italic'}>
                       {n}{memberNames.includes(n) ? '' : ' (former)'}
                     </span>
                   </label>
                 ))}
                 {people.length === 0 && (
-                  <p className="px-3 py-2 text-sm text-gray-400">No members on the roster yet.</p>
+                  <p className="px-3 py-2 text-sm text-gray-600">No members on the roster yet.</p>
                 )}
               </div>
 
               {chosenPeople.length > 1 && (
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   {chosenPeople.length} people share this task — it lands in all of their lists.
                 </p>
               )}
-              {showErrors && assigneeMissing && <p className="text-red-500 text-sm mt-1">Pick someone, or a side of the team</p>}
+              {showErrors && assigneeMissing && <p className="text-red-600 text-sm mt-1">Pick someone, or a side of the team</p>}
             </div>
             {task && (
               <div className="col-span-2 -mb-2">
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-600">
                   Assigned by{' '}
                   {task.assignedBy
                     ? <span className="font-medium text-gray-600">{task.assignedBy}</span>
@@ -280,12 +280,12 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
             <div>
               {/* Who to go to when you're stuck on this task — mentors/coaches only. */}
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mentor <span className="text-xs font-normal text-gray-400">(who to ask for help — optional)</span>
+                Mentor <span className="text-xs font-normal text-gray-600">(who to ask for help — optional)</span>
               </label>
               <select
                 value={formData.mentor}
                 onChange={(e) => setFormData({ ...formData, mentor: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                className="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-brand-blue-ink focus:border-transparent"
               >
                 <option value="">Nobody in particular</option>
                 {mentorNames.map(n => <option key={n} value={n}>{n}</option>)}
@@ -294,7 +294,7 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
                 )}
               </select>
               {mentorNames.length === 0 && (
-                <p className="text-xs text-gray-400 mt-1">No mentors yet — add the Mentor or Coach role in User Management.</p>
+                <p className="text-xs text-gray-600 mt-1">No mentors yet — add the Mentor or Coach role in User Management.</p>
               )}
 
             </div>
@@ -306,11 +306,11 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
                 type="date"
                 value={formData.dueDate}
                 onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent ${
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-blue-ink focus:border-transparent ${
                   showErrors && dueDateMissing ? 'border-red-400' : ''
                 }`}
               />
-              {showErrors && dueDateMissing && <p className="text-red-500 text-sm mt-1">Set a due date</p>}
+              {showErrors && dueDateMissing && <p className="text-red-600 text-sm mt-1">Set a due date</p>}
             </div>
           </div>
 
@@ -322,7 +322,7 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-blue-ink focus:border-transparent"
               >
                 <option value="todo">To Do</option>
                 <option value="25">25%</option>
@@ -339,7 +339,7 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
               <select
                 value={formData.priority}
                 onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-blue-ink focus:border-transparent"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -361,8 +361,8 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
                   onClick={() => toggleSkill(skill)}
                   className={`px-3 py-1 rounded-full text-sm transition-colors ${
                     formData.skills.includes(skill)
-                      ? 'bg-brand-yellow text-gray-700'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      ? 'bg-brand-yellow text-brand-black'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   {skill}
@@ -384,7 +384,7 @@ function TaskModal({ task, onSave, onClose, requestMode, isLead, isTeam, backToP
               disabled={descriptionMissing}
               className={`flex-1 px-4 py-2 rounded-lg transition-colors font-medium ${
                 descriptionMissing
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
                   : 'bg-brand-yellow hover:bg-brand-yellow-dark'
               }`}
             >

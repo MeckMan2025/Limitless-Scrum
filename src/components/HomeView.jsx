@@ -105,7 +105,7 @@ function BackgroundEditor({ background, onDone }) {
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="font-semibold text-gray-700">Edit home screen</h2>
-          <p className="text-xs text-gray-400">Changes are for everyone on the team, on every computer. Hide or show each part below.</p>
+          <p className="text-xs text-gray-600">Changes are for everyone on the team, on every computer. Hide or show each part below.</p>
         </div>
         <button onClick={onDone} className="shrink-0 px-3 py-1.5 rounded-lg bg-brand-blue-dark text-white text-sm font-semibold hover:opacity-90">Done</button>
       </div>
@@ -136,13 +136,13 @@ function BackgroundEditor({ background, onDone }) {
               className={`w-full flex items-center justify-center bg-gray-50 ${swatch(background?.kind === 'image')}`}
               style={background?.kind === 'image' ? { backgroundImage: `url("${background.url}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
             >
-              {background?.kind !== 'image' && <ImagePlus size={18} className="text-gray-400" />}
+              {background?.kind !== 'image' && <ImagePlus size={18} className="text-gray-600" />}
             </span>
             <span className="text-[11px] text-gray-600">{uploading ? 'Uploading…' : 'Picture'}</span>
           </button>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => upload(e.target.files?.[0])} />
         </div>
-        {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
+        {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
       </div>
     </section>
   )
@@ -537,12 +537,12 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
 
         {/* Mini Week Calendar */}
         <Widget id="week" hidden={hidden} editing={editing}>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-3">
+        <div className="bg-white rounded-xl shadow-sm p-3">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">This Week</h2>
+            <h2 className="text-xs font-semibold text-gray-600 uppercase tracking-wider">This Week</h2>
             <button
               onClick={() => onTabChange('calendar')}
-              className="text-xs text-brand-gold-dark hover:underline flex items-center gap-0.5"
+              className="text-xs text-brand-gold-ink hover:underline flex items-center gap-0.5"
             >
               Full Calendar <ArrowRight size={10} />
             </button>
@@ -558,13 +558,15 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
                   className={`flex flex-col items-center py-2 rounded-lg transition-colors ${
                     day.isToday
                       ? 'bg-brand-gold/30 ring-2 ring-brand-gold-dark/40'
+                      // Past days were faded to 40%, too faint to read; a grey
+                      // tile says "gone by" and keeps the date legible.
                       : isPast
-                        ? 'opacity-40'
+                        ? 'bg-gray-100'
                         : 'hover:bg-gray-50'
                   }`}
                 >
-                  <span className="text-[10px] text-gray-400 font-medium">{day.dayName}</span>
-                  <span className={`text-sm font-semibold mt-0.5 ${day.isToday ? 'text-brand-gold-dark' : 'text-gray-700'}`}>
+                  <span className="text-[10px] text-gray-600 font-medium">{day.dayName}</span>
+                  <span className={`text-sm font-semibold mt-0.5 ${day.isToday ? 'text-brand-gold-ink' : 'text-gray-700'}`}>
                     {day.dayNum}
                   </span>
                   {hasEvents && (
@@ -588,16 +590,16 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
         {(() => {
           const tiles = [
             ...(hasLeadTag ? [
-              { view: 'attendance',    label: 'Attendance',    icon: ClipboardCheck, ring: 'border-brand-gold',   tint: 'bg-brand-gold/20',   text: 'text-brand-gold-dark' },
+              { view: 'attendance',    label: 'Attendance',    icon: ClipboardCheck, ring: 'border-brand-gold',   tint: 'bg-brand-gold/20',   text: 'text-brand-gold-ink' },
               { view: 'design-matrix', label: 'Decision Matrix', icon: Grid3x3,        ring: 'border-brand-silver', tint: 'bg-brand-silver/20', text: 'text-brand-silver-dark' },
             ] : []),
             // A tab of its own rather than a Special Controls page, so this one
             // switches tabs instead of opening a special view.
-            { tab: 'ai-manual', label: 'AI Manual', icon: Bot, ring: 'border-brand-gold', tint: 'bg-brand-gold/20', text: 'text-brand-gold-dark' },
+            { tab: 'ai-manual', label: 'AI Manual', icon: Bot, ring: 'border-brand-gold', tint: 'bg-brand-gold/20', text: 'text-brand-gold-ink' },
             // Not for guests — the notebook is teammate-only, and a tile that
             // lands on "access restricted" is worse than no tile.
             ...(isGuest ? [] : [
-              { tab: 'notebook', label: 'Engineering Notebook', icon: BookOpen, ring: 'border-brand-yellow', tint: 'bg-brand-yellow/20', text: 'text-brand-yellow-dark' },
+              { tab: 'notebook', label: 'Engineering Notebook', icon: BookOpen, ring: 'border-brand-yellow', tint: 'bg-brand-yellow/20', text: 'text-brand-gold-ink' },
             ]),
           ]
           // All on one row, however many there are, so the row sizes itself to
@@ -630,7 +632,7 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
                 <Target size={18} className="text-brand-gold-dark" />
                 <h2 className="font-semibold text-gray-700">My Tasks</h2>
                 {myTaskTotal > myTasks.length && (
-                  <span className="ml-auto text-xs text-gray-400">
+                  <span className="ml-auto text-xs text-gray-600">
                     +{myTaskTotal - myTasks.length} more
                   </span>
                 )}
@@ -638,7 +640,7 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
               <div className="mt-1 relative flex-1">
                 {myTasks.length === 0 && (
                   <div className="flex items-center h-[46px] border-b border-gray-100">
-                    <span className="text-sm text-gray-400">Nothing assigned yet</span>
+                    <span className="text-sm text-gray-600">Nothing assigned yet</span>
                   </div>
                 )}
                 {myTasks.map((task, i) => {
@@ -666,7 +668,7 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
                       const pct = PCT[task.status] ?? 0
                       return (
                         <span
-                          className={`shrink-0 text-xs font-semibold ${pct === 100 ? 'text-green-600' : 'text-gray-400'}`}
+                          className={`shrink-0 text-xs font-semibold ${pct === 100 ? 'text-green-700' : 'text-gray-600'}`}
                         >
                           {pct}%
                         </span>
@@ -675,7 +677,7 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
                     {/* Due date in the margin — red once it's past. */}
                     {dueDate && (
                       <span
-                        className={`shrink-0 text-xs ${isOverdue ? 'text-amber-900 font-semibold' : 'text-gray-400'}`}
+                        className={`shrink-0 text-xs ${isOverdue ? 'text-amber-900 font-semibold' : 'text-gray-600'}`}
                         title={isOverdue ? 'Past due' : 'Due date'}
                       >
                         {dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
@@ -683,7 +685,7 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
                     )}
                     <button
                       onClick={() => onOpenTask?.(task.board_id, task.id)}
-                      className="shrink-0 flex items-center gap-0.5 text-sm font-semibold text-brand-gold-dark hover:underline"
+                      className="shrink-0 flex items-center gap-0.5 text-sm font-semibold text-brand-gold-ink hover:underline"
                     >
                       View <ArrowRight size={13} />
                     </button>
@@ -735,7 +737,7 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
                 {SEASON_GOALS.map((g, i) => (
                   <li key={g.id} className="flex gap-2">
                     <span
-                      className="shrink-0 w-5 h-5 rounded-full bg-brand-gold text-gray-700 text-[11px] font-bold flex items-center justify-center mt-0.5"
+                      className="shrink-0 w-5 h-5 rounded-full bg-brand-gold text-brand-black text-[11px] font-bold flex items-center justify-center mt-0.5"
                     >
                       {i + 1}
                     </span>
@@ -777,10 +779,10 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
 
         {/* Comp Day Role Preview */}
         {!compDayActive && compDayPreview && !isGuest && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-4">
+          <div className="bg-white rounded-xl shadow-sm p-4">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Your Comp Day Roles</h3>
-              <span className="text-xs text-gray-400">{compDayPreview.sessionName}</span>
+              <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Your Comp Day Roles</h3>
+              <span className="text-xs text-gray-600">{compDayPreview.sessionName}</span>
             </div>
             <div className="space-y-1.5">
               {compDayPreview.roles.map((r, i) => (
@@ -794,7 +796,7 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
             </div>
             <button
               onClick={() => onTabChange('comp-day')}
-              className="w-full mt-3 py-2 rounded-lg bg-brand-silver/50 hover:bg-brand-silver text-gray-700 text-sm font-medium transition-colors"
+              className="w-full mt-3 py-2 rounded-lg bg-brand-silver/50 hover:bg-brand-silver text-brand-black text-sm font-medium transition-colors"
             >
               View Competition Day
             </button>
@@ -802,7 +804,7 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
         )}
 
         {!compDayActive && !(compDayPreview && !isGuest) && (
-          <div className="bg-white/80 rounded-xl p-4 text-sm text-gray-400">Competition day: your roles, and a banner while it is live. Nothing to show today.</div>
+          <div className="bg-white rounded-xl p-4 text-sm text-gray-600">Competition day: your roles, and a banner while it is live. Nothing to show today.</div>
         )}
         </div>
         </Widget>
@@ -822,19 +824,19 @@ function HomeView({ onTabChange, onOpenTask, onOpenSpecial }) {
             <button
               onClick={() => onOpenSpecial?.('quotes')}
               title="Add a quote"
-              className="group inline-block max-w-xl px-4 py-1 rounded-lg hover:bg-brand-silver/15 transition-colors"
+              className="group inline-block max-w-xl px-4 py-2 rounded-xl bg-white shadow-sm hover:bg-gray-50 transition-colors"
             >
               {quote ? (
-                <p className="text-sm italic text-gray-400 group-hover:text-gray-600">
+                <p className="text-sm italic text-gray-700 group-hover:text-gray-900">
                   "{quote.content}"
                   {quote.submitted_by && <span className="not-italic"> — {quote.submitted_by}</span>}
                 </p>
               ) : (
-                <p className="text-sm italic text-gray-400 group-hover:text-gray-600">
+                <p className="text-sm italic text-gray-700 group-hover:text-gray-900">
                   No fun quotes yet — submit one!
                 </p>
               )}
-              <span className="block text-[10px] text-gray-300 group-hover:text-brand-silver-dark transition-colors">
+              <span className="block text-[10px] text-gray-600 group-hover:text-brand-blue-ink transition-colors">
                 + add a quote
               </span>
             </button>

@@ -88,7 +88,7 @@ export default function NotebookGallery({ onTabChange }) {
         </div>
       ) : photos.length === 0 ? (
         <div className="flex items-center justify-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
-          <p className="text-gray-400 text-sm">No notebook photos yet</p>
+          <p className="text-gray-600 text-sm">No notebook photos yet</p>
         </div>
       ) : (
         <div

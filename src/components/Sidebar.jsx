@@ -121,7 +121,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-white/90 backdrop-blur-sm shadow-lg z-40 transform transition-transform duration-300 flex flex-col ${
+        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-40 transform transition-transform duration-300 flex flex-col ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -129,13 +129,13 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
           <h2 className="text-lg font-semibold text-gray-700 flex items-center justify-between">
             <span className="flex items-center gap-2">
               <button onClick={onToggle} className="p-1 rounded hover:bg-gray-100 transition-colors">
-                <X size={18} className="text-gray-400" />
+                <X size={18} className="text-gray-600" />
               </button>
               <FolderKanban className="text-brand-yellow-dark" size={20} />
               Navigation
             </span>
             <button onClick={() => setMenuOpen(true)} className="p-1 rounded hover:bg-gray-100 transition-colors">
-              <MoreVertical size={18} className="text-gray-400" />
+              <MoreVertical size={18} className="text-gray-600" />
             </button>
           </h2>
         </div>
@@ -147,22 +147,22 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
             <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
               <div className="bg-white rounded-xl shadow-xl p-6 w-64 pointer-events-auto relative">
                 <button onClick={() => setMenuOpen(false)} className="absolute top-3 right-3 p-1 rounded hover:bg-gray-100 transition-colors">
-                  <X size={16} className="text-gray-400" />
+                  <X size={16} className="text-gray-600" />
                 </button>
                 <h3 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">Menu</h3>
                 <div className="space-y-1">
                   {[
-                    { icon: User, label: 'Profile', color: 'text-brand-blue-dark', tab: 'profile' },
+                    { icon: User, label: 'Profile', color: 'text-brand-blue-ink', tab: 'profile' },
                     { icon: Settings, label: 'Settings', color: 'text-brand-silver-dark', tab: 'settings' },
-                    ...(feat.orgChart && !isGuest && (!isTeamAccount || teamFullAccess) ? [{ icon: GitBranch, label: 'Org Chart', color: 'text-brand-blue-dark', tab: 'org-chart' }] : []),
+                    ...(feat.orgChart && !isGuest && (!isTeamAccount || teamFullAccess) ? [{ icon: GitBranch, label: 'Org Chart', color: 'text-brand-blue-ink', tab: 'org-chart' }] : []),
                     // A visiting team's controller gets it too, scoped to
                     // their own roster — that is what the account is for.
-                    ...(!isGuest && ((!isTeamAccount || teamFullAccess) || canManageOwnTeam) ? [{ icon: Shield, label: 'User Management', color: 'text-brand-yellow-dark', tab: 'user-management' }] : []),
+                    ...(!isGuest && ((!isTeamAccount || teamFullAccess) || canManageOwnTeam) ? [{ icon: Shield, label: 'User Management', color: 'text-brand-gold-ink', tab: 'user-management' }] : []),
                     ...(feat.suggestions ? [{ icon: Lightbulb, label: 'Suggestions', color: 'text-brand-silver-dark', tab: 'suggestions' }] : []),
                     // Local-only, like RoleSpec and Team Pulse — half-built pages
                     // shouldn't be one tap away on the deployed site.
-                    ...(feat.specialControls && isCofounder && import.meta.env.DEV ? [{ icon: Construction, label: 'Unfinished Tabs', color: 'text-gray-400', tab: 'unfinished-tabs' }] : []),
-                    { icon: LogOut, label: 'Logout', color: 'text-red-400' },
+                    ...(feat.specialControls && isCofounder && import.meta.env.DEV ? [{ icon: Construction, label: 'Unfinished Tabs', color: 'text-gray-600', tab: 'unfinished-tabs' }] : []),
+                    { icon: LogOut, label: 'Logout', color: 'text-red-600' },
                   ].map(({ icon: Icon, label, color, tab, action }) => (
                     <button
                       key={label}
@@ -246,7 +246,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
           {/* ─── Comp Day Locked Nav ─── */}
             <div className="mb-2 px-2 py-2 bg-gradient-to-r from-red-100 to-orange-100 rounded-lg border border-red-200">
               <p className="text-xs font-bold text-red-700 text-center">🔒 Comp Day Active</p>
-              <p className="text-[10px] text-red-500 text-center mt-0.5">Screen locked to your assigned role</p>
+              <p className="text-[10px] text-red-600 text-center mt-0.5">Screen locked to your assigned role</p>
             </div>
             <hr className="my-2 border-gray-200" />
             <div
@@ -279,7 +279,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
                 }`}
                 onClick={() => { onTabChange('schedule'); onToggle() }}
               >
-                <Calendar size={16} className="text-brand-blue-dark" />
+                <Calendar size={16} className="text-brand-blue-ink" />
                 <span className="truncate">Match Schedule</span>
               </div>
             )}
@@ -290,7 +290,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
                 }`}
                 onClick={() => { onTabChange('data'); onToggle() }}
               >
-                <LineChart size={16} className="text-brand-blue-dark" />
+                <LineChart size={16} className="text-brand-blue-ink" />
                 <span className="truncate">Scouting Data</span>
               </div>
             )}
@@ -340,7 +340,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
                   key={id}
                   onClick={() => { setNavMode(id); localStorage.setItem('scrum-nav-mode', id) }}
                   className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-lg text-[10px] font-semibold transition-colors ${
-                    navModeRaw === id ? 'bg-white text-gray-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                    navModeRaw === id ? 'bg-white text-gray-700 shadow-sm' : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
                   <Icon size={14} />
@@ -396,7 +396,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
               }
             }}
           >
-            <LineChart size={16} className="text-brand-blue-dark" />
+            <LineChart size={16} className="text-brand-blue-ink" />
             <span className="truncate flex-1">Data</span>
             {!isGuest && (
               <ChevronRight
@@ -527,7 +527,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
                 }`}
                 onClick={() => setLogsOpen(prev => !prev)}
               >
-                <ScrollText size={16} className="text-brand-blue-dark" />
+                <ScrollText size={16} className="text-brand-blue-ink" />
                 <span className="truncate flex-1">Logs</span>
                 <ChevronRight
                   size={14}
@@ -582,7 +582,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
               setBoardsOpen(prev => !prev)
             }}
           >
-            <FolderKanban size={16} className="text-brand-blue-dark" />
+            <FolderKanban size={16} className="text-brand-blue-ink" />
             <span className="truncate flex-1">Boards</span>
             <ChevronRight
               size={14}
@@ -624,7 +624,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
                     value={newTabName}
                     onChange={(e) => setNewTabName(e.target.value)}
                     placeholder="Board name"
-                    className="w-full px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                    className="w-full px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-brand-blue-ink focus:border-transparent"
                     autoFocus
                   />
                   <div className="flex gap-2">
@@ -649,7 +649,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
               ) : (
                 <button
                   onClick={() => setIsAdding(true)}
-                  className="w-full flex items-center justify-center gap-1 px-3 py-1.5 bg-brand-blue/30 hover:bg-brand-blue/50 rounded-lg transition-colors text-gray-500 text-sm"
+                  className="w-full flex items-center justify-center gap-1 px-3 py-1.5 bg-brand-blue/30 hover:bg-brand-blue/50 rounded-lg transition-colors text-gray-800 font-medium text-sm"
                 >
                   <Plus size={14} />
                   {canEditContent ? 'Add Board' : 'Request Board'}
@@ -746,7 +746,7 @@ function Sidebar({ tabs, activeTab, onTabChange, onAddTab, isOpen, onToggle, isP
           <div className="p-4 border-t">
             <button
               onClick={onToggleMusic}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-brand-blue/30 hover:bg-brand-blue/50 rounded-lg transition-colors text-gray-600 text-sm"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-brand-blue/30 hover:bg-brand-blue/50 rounded-lg transition-colors text-gray-800 font-medium text-sm"
             >
               {isPlaying ? <Pause size={16} /> : <Play size={16} />}
               {isPlaying ? 'Pause Music' : 'Play Music'}

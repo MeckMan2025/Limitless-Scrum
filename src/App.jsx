@@ -2110,7 +2110,7 @@ function App() {
               <NotificationBell />
               {canReviewRequests && <RequestsBadge type="task" boardId={activeTab} />}
               {canImport && (
-                <label className="flex items-center gap-2 px-3 md:px-4 py-2 bg-brand-blue hover:bg-brand-blue-dark rounded-lg cursor-pointer transition-colors">
+                <label className="flex items-center gap-2 px-3 md:px-4 py-2 bg-brand-blue hover:brightness-110 text-brand-black font-semibold rounded-lg cursor-pointer transition">
                   <Upload size={18} />
                   <span className="hidden sm:inline">Import</span>
                   <input
@@ -2123,7 +2123,7 @@ function App() {
               )}
               <button
                 onClick={handleExport}
-                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-brand-silver hover:bg-brand-silver-dark rounded-lg transition-colors"
+                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-brand-silver hover:bg-brand-silver-dark text-brand-black font-semibold rounded-lg transition-colors"
               >
                 <Download size={18} />
                 <span className="hidden sm:inline">Export</span>
@@ -2131,7 +2131,7 @@ function App() {
               {canEditContent ? (
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-brand-yellow hover:bg-brand-yellow-dark rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-brand-yellow hover:bg-brand-yellow-dark text-brand-black font-semibold rounded-lg transition-colors"
                 >
                   <Plus size={18} />
                   <span className="hidden sm:inline">Add Task</span>
@@ -2139,7 +2139,7 @@ function App() {
               ) : canRequestContent ? (
                 <button
                   onClick={() => setIsRequestModalOpen(true)}
-                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-brand-blue hover:bg-brand-blue-dark rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-brand-blue hover:brightness-110 text-brand-black font-semibold rounded-lg transition"
                 >
                   <Plus size={18} />
                   <span className="hidden sm:inline">Request Task</span>
@@ -2156,9 +2156,9 @@ function App() {
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 min-w-[300px]">
               {COLUMNS.map(column => (
                 <div key={column.id} className="flex flex-col">
-                  <div className={`${column.color} rounded-t-lg px-4 py-2 font-semibold text-gray-700`}>
+                  <div className={`${column.color} rounded-t-lg px-4 py-2 font-semibold text-brand-black`}>
                     {column.title}
-                    <span className="ml-2 text-sm font-normal text-gray-500">
+                    <span className="ml-2 text-sm font-normal text-gray-800">
                       ({getTasksByStatus(column.id).length})
                     </span>
                   </div>
@@ -2167,10 +2167,10 @@ function App() {
                       <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className={`flex-1 min-h-[200px] p-2 rounded-b-lg transition-colors ${
+                        className={`flex-1 min-h-[200px] p-2 rounded-b-lg border border-t-0 border-brand-black-line transition-colors ${
                           snapshot.isDraggingOver
-                            ? 'bg-white/80'
-                            : 'bg-white/50'
+                            ? 'bg-brand-blue/20'
+                            : 'bg-brand-black-soft'
                         }`}
                       >
                         {getTasksByStatus(column.id).map((task, index) => (
@@ -2217,12 +2217,12 @@ function App() {
           <div className="mt-6">
             <button
               onClick={() => setShowCompleted(prev => !prev)}
-              className="flex items-center gap-2 px-4 py-2 bg-white/60 hover:bg-white/90 rounded-lg font-semibold text-gray-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-brand-black-soft hover:bg-brand-black-line border border-brand-black-line rounded-lg font-semibold text-gray-100 transition-colors"
             >
               <ChevronRight size={16} className={`transition-transform ${showCompleted ? 'rotate-90' : ''}`} />
-              <CheckCircle size={16} className="text-green-500" />
+              <CheckCircle size={16} className="text-green-400" />
               Completed
-              <span className="text-sm font-normal text-gray-500">({completedTasks.length})</span>
+              <span className="text-sm font-normal text-gray-300">({completedTasks.length})</span>
             </button>
 
             {showCompleted && (
@@ -2240,18 +2240,18 @@ function App() {
                         {canEditContent && (
                           <button
                             onClick={() => handleDeleteTask(task.id)}
-                            className="text-gray-300 hover:text-red-400 shrink-0"
+                            className="text-gray-500 hover:text-red-600 shrink-0"
                             title="Delete"
                           >
                             <Trash2 size={14} />
                           </button>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-[11px] text-gray-400">
+                      <div className="flex items-center gap-3 text-[11px] text-gray-600">
                         {task.assignee === '__everyone__' ? (
-                          <span className="flex items-center gap-1 text-brand-blue-dark font-medium">👥 Everyone</span>
+                          <span className="flex items-center gap-1 text-brand-blue-ink font-medium">👥 Everyone</span>
                         ) : isTeamAssignee(task.assignee) ? (
-                          <span className="flex items-center gap-1 text-brand-blue-dark font-medium">{teamLabel(task.assignee)}</span>
+                          <span className="flex items-center gap-1 text-brand-blue-ink font-medium">{teamLabel(task.assignee)}</span>
                         ) : task.assignee && task.assignee !== '__up_for_grabs__' ? (
                           <span className="flex items-center gap-1">
                             <User size={11} />
@@ -2267,10 +2267,10 @@ function App() {
                             <CheckCircle size={11} className="text-green-500" />
                             Done {prettyDone(task.completedAt)}
                             {daysLate(task.dueDate, task.completedAt) > 0 && (
-                              <span className="text-red-400">· {latenessLabel(daysLate(task.dueDate, task.completedAt))}</span>
+                              <span className="text-red-600">· {latenessLabel(daysLate(task.dueDate, task.completedAt))}</span>
                             )}
                             {daysLate(task.dueDate, task.completedAt) < 0 && (
-                              <span className="text-green-600">· {latenessLabel(daysLate(task.dueDate, task.completedAt))}</span>
+                              <span className="text-green-700">· {latenessLabel(daysLate(task.dueDate, task.completedAt))}</span>
                             )}
                           </span>
                         )}

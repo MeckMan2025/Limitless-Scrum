@@ -16,11 +16,11 @@ import { triggerPush } from '../utils/pushHelper'
 import { presencePct } from '../lib/attendanceTiming'
 
 const STATUS_OPTIONS = [
-  { value: 'available', label: 'Available', icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-50' },
+  { value: 'available', label: 'Available', icon: CheckCircle, color: 'text-green-700', bg: 'bg-green-50' },
   { value: 'locked-in', label: 'Locked In', icon: Lock, color: 'text-yellow-600', bg: 'bg-yellow-50', note: 'Focused work, minimal interruptions' },
-  { value: 'dnd', label: "Don't Talk To Me", icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', note: 'No interruptions unless critical' },
+  { value: 'dnd', label: "Don't Talk To Me", icon: XCircle, color: 'text-red-600', bg: 'bg-red-50', note: 'No interruptions unless critical' },
   { value: 'in-lab', label: 'In Lab', icon: Wrench, color: 'text-blue-500', bg: 'bg-blue-50' },
-  { value: 'out', label: 'Out', icon: Clock, color: 'text-gray-400', bg: 'bg-gray-50' },
+  { value: 'out', label: 'Out', icon: Clock, color: 'text-gray-600', bg: 'bg-gray-50' },
 ]
 
 const DISCIPLINE_OPTIONS = [
@@ -527,7 +527,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
   // reason it should be the one page that tells you less about you.
   const renderWork = (work) => {
     const { sessions, records, entries, tasks, loading } = work
-              if (loading) return <p className="text-sm text-gray-400 text-center py-4">Loading their work…</p>
+              if (loading) return <p className="text-sm text-gray-600 text-center py-4">Loading their work…</p>
               const byId = Object.fromEntries(records.map(r => [r.session_id, r.status]))
               // The whole record, so a missed meeting can say why. This is
               // where someone's absences are read end to end, which is the
@@ -548,12 +548,12 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                   <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-3">
                     <h3 className="font-semibold text-gray-700">Attendance</h3>
                     {sessions.length === 0 ? (
-                      <p className="text-sm text-gray-400">No meetings recorded yet.</p>
+                      <p className="text-sm text-gray-600">No meetings recorded yet.</p>
                     ) : (
                       <>
                         <div className="flex items-end gap-4">
                           <div className="text-3xl font-bold text-gray-800">{rate}%</div>
-                          <div className="text-xs text-gray-400 pb-1">{present} present / {counted.length} meetings</div>
+                          <div className="text-xs text-gray-600 pb-1">{present} present / {counted.length} meetings</div>
                         </div>
                         <div className="w-full bg-gray-100 rounded-full h-2.5">
                           <div className="h-2.5 rounded-full transition-all duration-500" style={{
@@ -567,7 +567,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                             const st = byId[sn.id]
                             const cls = st === 'present' ? 'bg-green-100 text-green-700'
                               : st === 'absent' ? 'bg-red-100 text-red-700'
-                              : st === 'excused' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-400'
+                              : st === 'excused' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'
                             const why = recById[sn.id]?.reason
                             return (
                               <div key={sn.id} className="flex items-start justify-between gap-2 text-sm">
@@ -591,17 +591,17 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                   {/* ─── Current tasks ─── */}
                   <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-2">
                     <h3 className="font-semibold text-gray-700">
-                      Current tasks <span className="text-sm font-normal text-gray-400">({openTasks.length})</span>
+                      Current tasks <span className="text-sm font-normal text-gray-600">({openTasks.length})</span>
                     </h3>
                     {openTasks.length === 0 ? (
-                      <p className="text-sm text-gray-400">Nothing assigned right now.</p>
+                      <p className="text-sm text-gray-600">Nothing assigned right now.</p>
                     ) : openTasks.map(t => (
                       <div key={t.id} className="border border-gray-100 rounded-lg p-2.5">
                         <div className="flex items-start justify-between gap-2">
                           <p className="text-sm font-medium text-gray-800">{t.title || t.name || 'Untitled'}</p>
                           <span className="text-[11px] px-2 py-0.5 rounded-full bg-brand-blue/30 text-gray-600 shrink-0">{t.status}</span>
                         </div>
-                        {t.due_date && <p className="text-xs text-gray-400 mt-0.5">Due {t.due_date}</p>}
+                        {t.due_date && <p className="text-xs text-gray-600 mt-0.5">Due {t.due_date}</p>}
                       </div>
                     ))}
                   </section>
@@ -613,7 +613,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                       notebook don't show the same entries two different ways. */}
                   <section className="space-y-2">
                     <h3 className="font-semibold text-gray-700">
-                      Engineering notebook <span className="text-sm font-normal text-gray-400">({entries.length})</span>
+                      Engineering notebook <span className="text-sm font-normal text-gray-600">({entries.length})</span>
                     </h3>
                     <NotebookBook entries={entries} projectName={`${shownName}'s notebook`} />
                   </section>
@@ -689,7 +689,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                   {vpEmail && (
                     <a
                       href={`mailto:${vpEmail}`}
-                      className="block text-sm text-gray-500 hover:text-brand-blue-dark hover:underline break-all"
+                      className="block text-sm text-gray-500 hover:text-brand-blue-ink hover:underline break-all"
                     >
                       {vpEmail}
                     </a>
@@ -711,7 +711,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                   {vpTags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-1.5">
                       {vpTags.map(tag => (
-                        <span key={tag} className="text-xs px-2 py-0.5 rounded-full font-medium bg-brand-yellow/30 text-brand-yellow-dark">{tag}</span>
+                        <span key={tag} className="text-xs px-2 py-0.5 rounded-full font-medium bg-brand-yellow/30 text-brand-gold-ink">{tag}</span>
                       ))}
                     </div>
                   )}
@@ -727,7 +727,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
 
               {vp.discipline && (
                 <div className="mt-3">
-                  <span className="text-sm px-2.5 py-1 rounded-full bg-brand-blue/30 text-brand-blue-dark font-medium">{vp.discipline}</span>
+                  <span className="text-sm px-2.5 py-1 rounded-full bg-brand-blue/30 text-brand-blue-ink font-medium">{vp.discipline}</span>
                 </div>
               )}
             </section>
@@ -736,12 +736,12 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
             {canChangeRoles && (
               <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
                 <h3 className="font-semibold text-gray-700 mb-1">Roles</h3>
-                <p className="text-xs text-gray-400 mb-3">Add a role from the dropdown, or remove one below. This sets their side colors and access.</p>
+                <p className="text-xs text-gray-600 mb-3">Add a role from the dropdown, or remove one below. This sets their side colors and access.</p>
 
                 {/* Assigned roles as removable chips */}
                 <div className="flex flex-wrap gap-1.5 mb-3">
                   {(vpTags || []).length === 0 ? (
-                    <span className="text-xs text-gray-400">No roles assigned</span>
+                    <span className="text-xs text-gray-600">No roles assigned</span>
                   ) : (
                     (vpTags || []).map(r => (
                       <span key={r} className="text-xs px-2.5 py-1 rounded-full font-medium bg-brand-yellow text-gray-800 inline-flex items-center gap-1">
@@ -799,7 +799,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
           </div>
         </div>
         {saveError && (
-          <p className="text-xs text-amber-600 text-center pb-2 px-4">{saveError}</p>
+          <p className="text-xs text-amber-700 text-center pb-2 px-4">{saveError}</p>
         )}
       </header>
 
@@ -831,7 +831,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       placeholder="Your name"
-                      className="w-full px-3 py-1.5 border rounded-lg text-sm font-bold text-gray-800 focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                      className="w-full px-3 py-1.5 border rounded-lg text-sm font-bold text-gray-800 focus:ring-2 focus:ring-brand-blue-ink focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -841,7 +841,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                       value={editNickname}
                       onChange={(e) => setEditNickname(e.target.value)}
                       placeholder="Optional nickname"
-                      className="w-full px-3 py-1.5 border rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                      className="w-full px-3 py-1.5 border rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-brand-blue-ink focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -851,7 +851,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                         type="button"
                         onClick={() => setEditUseNickname(false)}
                         className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                          !editUseNickname ? 'bg-brand-yellow font-medium text-gray-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          !editUseNickname ? 'bg-brand-yellow font-medium text-brand-black' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
                         {editName || username || 'Name'}
@@ -861,7 +861,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                         onClick={() => setEditUseNickname(true)}
                         disabled={!editNickname.trim()}
                         className={`px-3 py-1.5 rounded-lg text-sm transition-colors disabled:opacity-40 ${
-                          editUseNickname ? 'bg-brand-yellow font-medium text-gray-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          editUseNickname ? 'bg-brand-yellow font-medium text-brand-black' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
                         {editNickname.trim() || 'Nickname'}
@@ -875,12 +875,12 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                 )}
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   {functionTags.length > 0 && functionTags.map(tag => (
-                    <span key={tag} className="text-xs px-2 py-0.5 rounded-full font-medium bg-brand-yellow/30 text-brand-yellow-dark">
+                    <span key={tag} className="text-xs px-2 py-0.5 rounded-full font-medium bg-brand-yellow/30 text-brand-gold-ink">
                       {tag}
                     </span>
                   ))}
                   {profile.discipline && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-brand-blue/30 text-brand-blue-dark font-medium">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-brand-blue/30 text-brand-blue-ink font-medium">
                       {profile.discipline}
                     </span>
                   )}
@@ -901,10 +901,10 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                   <CurrentStatusIcon size={18} className={currentStatus.color} />
                   <span className="font-medium text-gray-700">{currentStatus.label}</span>
                   {currentStatus.note && (
-                    <span className="text-xs text-gray-400 hidden sm:inline">— {currentStatus.note}</span>
+                    <span className="text-xs text-gray-600 hidden sm:inline">— {currentStatus.note}</span>
                   )}
                 </div>
-                <ChevronDown size={16} className={`text-gray-400 transition-transform ${statusOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={16} className={`text-gray-600 transition-transform ${statusOpen ? 'rotate-180' : ''}`} />
               </button>
               {statusOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border z-20">
@@ -921,7 +921,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                         <OptIcon size={18} className={opt.color} />
                         <div className="text-left">
                           <p className="text-sm font-medium text-gray-700">{opt.label}</p>
-                          {opt.note && <p className="text-xs text-gray-400">{opt.note}</p>}
+                          {opt.note && <p className="text-xs text-gray-600">{opt.note}</p>}
                         </div>
                       </button>
                     )
@@ -938,7 +938,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                 <select
                   value={profile.discipline}
                   onChange={(e) => patchField('discipline', e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-brand-blue-ink focus:border-transparent"
                 >
                   <option value="">Select...</option>
                   {DISCIPLINE_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
@@ -951,7 +951,7 @@ function ProfileView({ viewingProfileId, onClearViewing }) {
                   value={profile.timezone}
                   onChange={(e) => patchField('timezone', e.target.value)}
                   placeholder="e.g. CST"
-                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-brand-blue-ink focus:border-transparent"
                 />
               </div>
             </div>

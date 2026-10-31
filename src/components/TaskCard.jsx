@@ -40,7 +40,7 @@ function TaskCard({ task, isDragging, onEdit, onDelete, canEdit, onOpen, onClaim
               onPointerDown={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onEdit() }}
-              className="p-1 text-gray-400 hover:text-brand-blue-dark rounded"
+              className="p-1 text-gray-500 hover:text-brand-blue-ink rounded"
             >
               <Pencil size={14} />
             </button>
@@ -48,7 +48,7 @@ function TaskCard({ task, isDragging, onEdit, onDelete, canEdit, onOpen, onClaim
               onPointerDown={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onDelete() }}
-              className="p-1 text-gray-400 hover:text-red-400 rounded"
+              className="p-1 text-gray-500 hover:text-red-600 rounded"
             >
               <Trash2 size={14} />
             </button>
@@ -56,19 +56,19 @@ function TaskCard({ task, isDragging, onEdit, onDelete, canEdit, onOpen, onClaim
         )}
       </div>
 
-      <div className="flex items-center justify-between text-xs text-gray-400">
+      <div className="flex items-center justify-between text-xs text-gray-600">
         <div className="flex items-center gap-3">
           {isUpForGrabs ? (
-            <span className="flex items-center gap-1 text-amber-500 font-medium">
+            <span className="flex items-center gap-1 text-amber-700 font-medium">
               <Zap size={12} />
               Up for Grabs
             </span>
           ) : isEveryone ? (
-            <span className="flex items-center gap-1 text-brand-blue-dark font-medium">
+            <span className="flex items-center gap-1 text-brand-blue-ink font-medium">
               👥 Everyone
             </span>
           ) : isTeamAssignee(task.assignee) ? (
-            <span className="flex items-center gap-1 text-brand-blue-dark font-medium">
+            <span className="flex items-center gap-1 text-brand-blue-ink font-medium">
               {teamLabel(task.assignee)}
             </span>
           ) : onIt.length > 0 ? (
@@ -90,7 +90,7 @@ function TaskCard({ task, isDragging, onEdit, onDelete, canEdit, onOpen, onClaim
             if (on.length === 0) return null
             return (
               <span
-                className="flex items-center gap-1 text-brand-blue-dark font-medium"
+                className="flex items-center gap-1 text-brand-blue-ink font-medium"
                 title={on.length > 1
                   ? `Shared with ${on.length} boards — progress moves on all of them`
                   : on[0].label}
@@ -101,7 +101,7 @@ function TaskCard({ task, isDragging, onEdit, onDelete, canEdit, onOpen, onClaim
             )
           })()}
           {task.dueDate && (
-            <span className={`flex items-center gap-1 ${isOverdue ? 'text-red-400' : ''}`}>
+            <span className={`flex items-center gap-1 ${isOverdue ? 'text-red-600 font-medium' : ''}`}>
               <Calendar size={12} />
               {task.dueDate}
             </span>
@@ -115,7 +115,7 @@ function TaskCard({ task, isDragging, onEdit, onDelete, canEdit, onOpen, onClaim
           onPointerDown={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); onMarkDone(task.id) }}
-          className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-600 text-xs font-medium rounded-lg transition-colors"
+          className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-medium rounded-lg transition-colors"
         >
           <CheckCircle size={12} />
           Mark Done
@@ -142,7 +142,7 @@ function TaskCard({ task, isDragging, onEdit, onDelete, canEdit, onOpen, onClaim
           onPointerDown={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); onLeaveTask(task) }}
-          className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-500 text-xs font-medium rounded-lg transition-colors"
+          className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg transition-colors"
         >
           <LogOut size={12} />
           {leaveIsImmediate ? 'Leave Task' : 'Request to Leave'}

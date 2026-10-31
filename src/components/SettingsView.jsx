@@ -88,8 +88,8 @@ export default function SettingsView() {
 
   return (
     <div className="max-w-2xl mx-auto p-4 pl-14 md:pl-4 space-y-4">
-      <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-        <Settings size={22} className="text-brand-silver-dark" />
+      <h2 className="text-xl font-bold text-gray-100 flex items-center gap-2">
+        <Settings size={22} className="text-brand-silver" />
         Settings
       </h2>
 
@@ -97,10 +97,10 @@ export default function SettingsView() {
       {/* The Scrum boards are the app; everything else is switched on here. */}
       <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <h3 className="font-semibold text-gray-700 mb-1 flex items-center gap-2">
-          <LayoutGrid size={16} className="text-brand-blue-dark" />
+          <LayoutGrid size={16} className="text-brand-blue-ink" />
           Features
         </h3>
-        <p className="text-xs text-gray-400 mb-3">
+        <p className="text-xs text-gray-600 mb-3">
           {hasLeadTag
             ? 'Switch on the parts of the app the team uses. This changes the app for everyone on every computer; anything off disappears from the menu.'
             : 'The parts of the app the team uses. Leads switch these on and off for everyone.'}
@@ -110,7 +110,7 @@ export default function SettingsView() {
             <div key={f.key} className="flex items-center justify-between gap-4 py-2.5">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-700">{f.label}</p>
-                <p className="text-xs text-gray-400">{f.desc}</p>
+                <p className="text-xs text-gray-600">{f.desc}</p>
               </div>
               <button
                 role="switch"
@@ -134,17 +134,17 @@ export default function SettingsView() {
       {/* ─── Push Notifications ─── */}
       <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-          <Bell size={16} className="text-brand-blue-dark" />
+          <Bell size={16} className="text-brand-blue-ink" />
           Push Notifications
         </h3>
         {!pushSupported ? (
-          <p className="text-sm text-gray-400">Push notifications are not supported in this browser.</p>
+          <p className="text-sm text-gray-600">Push notifications are not supported in this browser.</p>
         ) : (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-700">Enable push notifications</p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-600">
                   {pushPermission === 'denied'
                     ? 'Notifications are blocked in browser settings'
                     : pushSubscribed
@@ -191,8 +191,8 @@ export default function SettingsView() {
                 }`} />
               </button>
             </div>
-            {pushBusy && <p className="text-xs text-gray-400">Working...</p>}
-            {pushError && <p className="text-xs text-red-500">{pushError}</p>}
+            {pushBusy && <p className="text-xs text-gray-600">Working...</p>}
+            {pushError && <p className="text-xs text-red-600">{pushError}</p>}
 
             {pushSubscribed && (
               <>
@@ -209,7 +209,7 @@ export default function SettingsView() {
                     }`} />
                   </button>
                 </div>
-                <p className="text-xs text-gray-400 italic">Leads can force-send important notifications even if you turn these off.</p>
+                <p className="text-xs text-gray-600 italic">Leads can force-send important notifications even if you turn these off.</p>
               </>
             )}
           </div>
@@ -226,7 +226,7 @@ export default function SettingsView() {
           <Bell size={16} className="text-brand-yellow-dark" />
           Daily Team Pulse
         </h3>
-        <p className="text-xs text-gray-400 mb-3">A quick 15-second check-in once a day. Your responses are anonymous to leaders.</p>
+        <p className="text-xs text-gray-600 mb-3">A quick 15-second check-in once a day. Your responses are anonymous to leaders.</p>
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium text-gray-700">Show daily pulse popup</p>
           <button
@@ -249,7 +249,7 @@ export default function SettingsView() {
           <Music size={16} className="text-brand-yellow-dark" />
           Startup Music
         </h3>
-        <p className="text-xs text-gray-400 mb-3">Choose which song plays when you open the app.</p>
+        <p className="text-xs text-gray-600 mb-3">Choose which song plays when you open the app.</p>
         <div className="space-y-2">
           {MUSIC_OPTIONS.map(opt => (
             <button
@@ -266,7 +266,7 @@ export default function SettingsView() {
               }`}
             >
               <p className="text-sm font-medium text-gray-700">{opt.label}</p>
-              <p className="text-xs text-gray-400">{opt.description}</p>
+              <p className="text-xs text-gray-600">{opt.description}</p>
             </button>
           ))}
         </div>
@@ -275,13 +275,13 @@ export default function SettingsView() {
       {/* ─── Sound Effects ─── */}
       <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-          <Volume2 size={16} className="text-brand-blue-dark" />
+          <Volume2 size={16} className="text-brand-blue-ink" />
           Sound Effects
         </h3>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-700">Enable button sounds</p>
-            <p className="text-xs text-gray-400">Play a sound when adding tasks and boards</p>
+            <p className="text-xs text-gray-600">Play a sound when adding tasks and boards</p>
           </div>
           <button
             onClick={() => {
@@ -307,7 +307,7 @@ export default function SettingsView() {
           <RefreshCw size={16} className="text-brand-gold-dark" />
           Scouting Sync
         </h3>
-        <p className="text-xs text-gray-400 mb-3">
+        <p className="text-xs text-gray-600 mb-3">
           No Wi-Fi at the venue? AirDrop sends every match scouted so far as a file.
           On the other device, tap Receive and pick it — matches already there are skipped.
         </p>
@@ -336,7 +336,7 @@ export default function SettingsView() {
       {/* ─── Change Password ─── */}
       <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
         <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-          <Lock size={16} className="text-brand-blue-dark" />
+          <Lock size={16} className="text-brand-blue-ink" />
           Change Password
         </h3>
         <form onSubmit={async (e) => {
@@ -373,12 +373,12 @@ export default function SettingsView() {
             <label className="block text-xs font-medium text-gray-500 mb-1">Confirm Password</label>
             <PasswordInput value={confirmPassword} onChange={setConfirmPassword} placeholder="Confirm new password" />
           </div>
-          {pwError && <p className="text-sm text-red-500">{pwError}</p>}
-          {pwSuccess && <p className="text-sm text-green-500">Password updated successfully!</p>}
+          {pwError && <p className="text-sm text-red-600">{pwError}</p>}
+          {pwSuccess && <p className="text-sm text-green-700">Password updated successfully!</p>}
           <button
             type="submit"
             disabled={pwSubmitting || !newPassword || !confirmPassword}
-            className="px-4 py-2 bg-brand-blue text-gray-700 rounded-lg text-sm font-medium hover:bg-brand-blue-dark hover:text-white transition-colors disabled:opacity-40"
+            className="px-4 py-2 bg-brand-blue text-brand-black rounded-lg text-sm font-medium hover:bg-brand-blue-dark hover:text-white transition-colors disabled:opacity-40"
           >
             {pwSubmitting ? 'Updating...' : 'Update Password'}
           </button>

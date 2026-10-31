@@ -12,6 +12,12 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
+/* Tailwind's default placeholder grey reads at 2.5:1 on a white field. */
+input::placeholder,
+textarea::placeholder {
+  color: #6B7280;
+}
+
 @keyframes slide-in-right {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }

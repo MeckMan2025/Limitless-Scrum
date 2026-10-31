@@ -152,10 +152,10 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
   }
 
   const wrapper = 'min-h-screen bg-gradient-to-br from-[#0B0F1A] via-[#101B3A] to-[#0B0F1A] flex items-center justify-center'
-  const card = 'bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-80 space-y-5'
-  const input = 'w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-transparent text-center text-lg'
-  const btn = 'w-full py-3 bg-brand-yellow hover:bg-brand-yellow-dark disabled:opacity-50 rounded-xl font-semibold text-gray-700 transition-colors text-lg'
-  const heading = 'text-2xl font-bold bg-gradient-to-r from-brand-blue-dark via-brand-silver-dark to-brand-yellow-dark bg-clip-text text-transparent'
+  const card = 'bg-white rounded-2xl shadow-xl p-8 w-80 space-y-5'
+  const input = 'w-full px-4 py-3 border border-gray-400 rounded-xl focus:ring-2 focus:ring-brand-blue-ink focus:border-transparent text-center text-lg'
+  const btn = 'w-full py-3 bg-brand-yellow hover:bg-brand-yellow-dark disabled:opacity-50 rounded-xl font-semibold text-brand-black transition-colors text-lg'
+  const heading = 'text-2xl font-bold bg-gradient-to-r from-brand-blue-ink to-brand-gold-ink bg-clip-text text-transparent'
 
   // Password recovery — user clicked reset link in email
   if (passwordRecovery) {
@@ -191,7 +191,7 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
             required
           />
 
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
 
           <button type="submit" disabled={submitting} className={btn}>
             {submitting ? 'Updating...' : 'Update Password'}
@@ -245,12 +245,12 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
             required
           />
 
-          <p className="text-xs text-gray-400 text-center -mt-1">
+          <p className="text-xs text-gray-600 text-center -mt-1">
             Use the address a lead invited. Forgot your password later? A lead
             can reset it for you in User Management.
           </p>
 
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
 
           <button type="submit" disabled={submitting} className={btn}>
             {submitting ? 'Checking...' : 'Continue'}
@@ -261,7 +261,7 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
             <button
               type="button"
               onClick={() => { setMode('signin'); resetSignupState() }}
-              className="text-brand-yellow-dark font-semibold hover:underline"
+              className="text-brand-gold-ink font-semibold hover:underline"
             >
               Sign In
             </button>
@@ -272,7 +272,7 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
               <button
                 type="button"
                 onClick={onBack}
-                className="text-brand-blue-dark font-semibold hover:underline"
+                className="text-brand-blue-ink font-semibold hover:underline"
               >
                 &larr; Back to Welcome
               </button>
@@ -295,7 +295,7 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
 
           <div className="text-center text-sm text-gray-500">
             <span className="font-medium text-gray-700">{email}</span>
-            <span className="ml-1 text-green-500">&#10003;</span>
+            <span className="ml-1 text-green-700">&#10003;</span>
           </div>
 
           <input
@@ -314,7 +314,7 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
             className={input}
           />
 
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
 
           <button type="submit" disabled={submitting} className={btn}>
             {submitting ? 'Creating account...' : 'Sign Up'}
@@ -324,7 +324,7 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
             <button
               type="button"
               onClick={() => { setSignupStep(1); setPassword(''); setDisplayName(''); setError('') }}
-              className="text-brand-yellow-dark font-semibold hover:underline"
+              className="text-brand-gold-ink font-semibold hover:underline"
             >
               Back
             </button>
@@ -347,7 +347,7 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
             <p className="text-sm text-gray-600">
               Check your inbox (and spam/junk folder) and follow the link to reset your password. Only the link in the newest email works.
             </p>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-600 mt-2">
               Note: Emails can take a few minutes. If it never arrives, ask a team lead to reset your password from the Supabase dashboard.
             </p>
             <button
@@ -392,12 +392,12 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
             required
           />
 
-          <p className="text-xs text-gray-400 text-center -mt-1">
+          <p className="text-xs text-gray-600 text-center -mt-1">
             If this is a school address and nothing arrives, it was probably
             blocked — ask a lead to change your email to a personal one.
           </p>
 
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
 
           <button type="submit" disabled={submitting} className={btn}>
             {submitting ? 'Sending...' : 'Send Reset Link'}
@@ -407,7 +407,7 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
             <button
               type="button"
               onClick={() => { setForgotPassword(false); setError('') }}
-              className="text-brand-yellow-dark font-semibold hover:underline"
+              className="text-brand-gold-ink font-semibold hover:underline"
             >
               Back to Sign In
             </button>
@@ -465,7 +465,7 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
             className={input}
           />
 
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
 
           <button
             type="submit"
@@ -479,7 +479,7 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
             <button
               type="button"
               onClick={() => { setForgotPassword(true); setError('') }}
-              className="text-brand-yellow-dark font-semibold hover:underline"
+              className="text-brand-gold-ink font-semibold hover:underline"
             >
               Forgot password?
             </button>
@@ -487,12 +487,12 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
 
           {/* A lead invites an address in User Management; that person then
               makes their own account here. */}
-          <p className="text-xs text-center text-gray-400">
+          <p className="text-xs text-center text-gray-600">
             Invited by a lead?{' '}
             <button
               type="button"
               onClick={() => { setMode('signup'); setError('') }}
-              className="text-brand-yellow-dark font-semibold hover:underline"
+              className="text-brand-gold-ink font-semibold hover:underline"
             >
               Create your account
             </button>
@@ -503,7 +503,7 @@ function LoginScreen({ sessionExpired, linkError, onBack }) {
               <button
                 type="button"
                 onClick={onBack}
-                className="text-brand-blue-dark font-semibold hover:underline"
+                className="text-brand-blue-ink font-semibold hover:underline"
               >
                 &larr; Back to Welcome
               </button>
